@@ -1,0 +1,1635 @@
+/* ===== Reset & base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f5f0eb;
+  color: #2d2d2d;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Header ===== */
+header {
+  background: linear-gradient(135deg, #c9a96e 0%, #a0785a 100%);
+  color: white;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+header .subtitle {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+/* ===== Main layout ===== */
+main {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ===== Alerts section ===== */
+.alerts-section {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.alert-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  border-left: 5px solid transparent;
+  transition: opacity 0.2s;
+}
+
+.alert-overdue { border-color: #b91c1c; }
+.alert-urgent  { border-color: #b45309; }
+.alert-ok      { border-color: #1e6b41; }
+
+.alert-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.alert-count {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.alert-overdue .alert-count { color: #b91c1c; }
+.alert-urgent  .alert-count { color: #b45309; }
+.alert-ok      .alert-count { color: #1e6b41; }
+
+.alert-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #888;
+}
+
+/* Carte à zéro : atténuée mais toujours visible */
+.alert-card.alert-zero {
+  opacity: 0.4;
+}
+
+/* ===== Budget summary ===== */
+.budget-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.budget-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  border-top: 4px solid transparent;
+}
+
+.budget-card.total   { border-color: #c9a96e; }
+.budget-card.paid    { border-color: #4caf82; }
+.budget-card.remaining { border-color: #e07b54; }
+
+.budget-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #888;
+}
+
+.budget-amount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.budget-card.paid    .budget-amount { color: #4caf82; }
+.budget-card.remaining .budget-amount { color: #e07b54; }
+
+/* ===== Form section ===== */
+.form-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+}
+
+.form-section h2,
+.vendors-section h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  color: #a0785a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+input, select {
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #2d2d2d;
+  background: #faf9f7;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: #c9a96e;
+  background: white;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #c9a96e, #a0785a);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.6rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* ===== Vendors section ===== */
+.vendors-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+}
+
+.count-badge {
+  background: #c9a96e;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+/* ===== Filters bar ===== */
+.filters-bar {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.8rem 1.5rem;
+  padding: 1rem 0 1.2rem;
+  border-bottom: 1.5px solid #f0eae2;
+  margin-bottom: 1.2rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #b0a090;
+}
+
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.pill {
+  background: #f0eae2;
+  color: #7a5c42;
+  border: 1.5px solid transparent;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  background: #e0cebb;
+}
+
+.pill.active {
+  background: #a0785a;
+  color: white;
+  border-color: #a0785a;
+}
+
+.filter-select {
+  padding: 0.3rem 0.65rem;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: #2d2d2d;
+  background: #faf9f7;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+  border-color: #c9a96e;
+}
+
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1.5px solid #ddd;
+  color: #999;
+  padding: 0.28rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  align-self: flex-end;
+}
+
+.btn-reset:hover {
+  background: #fde8e8;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #aaa;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+/* Table */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+thead th {
+  background: #faf5ee;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #a0785a;
+  border-bottom: 2px solid #eee;
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid #f0eae2;
+  transition: background 0.15s;
+}
+
+tbody tr:hover {
+  background: #fdf9f4;
+}
+
+tbody td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+}
+
+/* ===== Status badge ===== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Payé */
+.badge-paid {
+  background: #e6f7ef;
+  color: #1e6b41;
+}
+
+/* Acompte versé */
+.badge-partial {
+  background: #fff3e0;
+  color: #b45309;
+}
+
+/* Non payé */
+.badge-unpaid {
+  background: #fde8e8;
+  color: #b91c1c;
+}
+
+/* ===== Fond de ligne selon statut ===== */
+tbody tr.row-unpaid {
+  background: #fff5f5;
+}
+
+tbody tr.row-unpaid:hover {
+  background: #fee2e2;
+}
+
+tbody tr.row-partial {
+  background: #fffbf0;
+}
+
+tbody tr.row-partial:hover {
+  background: #fef3cd;
+}
+
+tbody tr.row-paid {
+  background: #f4fdf8;
+}
+
+tbody tr.row-paid:hover {
+  background: #dcf8ec;
+}
+
+/* Badge urgence EN RETARD */
+.badge-overdue {
+  background: #fde8e8;
+  color: #b91c1c;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+}
+
+/* Badge urgence URGENT */
+.badge-urgent {
+  background: #fff0d9;
+  color: #92400e;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+}
+
+/* Cellule date + badge : l'un sous l'autre */
+.due-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+/* Fond de ligne — urgence prend le dessus sur statut de paiement */
+tbody tr.row-overdue,
+tbody tr.row-overdue:hover {
+  background: #fff0f0;
+}
+
+tbody tr.row-urgent,
+tbody tr.row-urgent:hover {
+  background: #fffbf0;
+}
+
+/* Champ type personnalisé — apparition animée */
+#customTypeGroup {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tag personnalisé légèrement différencié */
+.type-tag-custom {
+  background: #ece8f5;
+  color: #5c478a;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* Type tag */
+.type-tag {
+  background: #f0eae2;
+  color: #7a5c42;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Delete button */
+.btn-delete {
+  background: none;
+  border: 1.5px solid #f5c2c2;
+  color: #c0392b;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+  color: white;
+}
+
+/* Remaining amount — highlighted when > 0 */
+.amount-remaining {
+  font-weight: 700;
+  color: #e07b54;
+}
+
+.amount-zero {
+  color: #aaa;
+}
+
+/* ===== Bouton "Voir" — lien stylisé ===== */
+.btn-view {
+  display: inline-block;
+  background: none;
+  border: 1.5px solid #c9a96e;
+  color: #a0785a;
+  padding: 0.28rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.btn-view:hover { background: #faf0e0; }
+
+/* ===== Action cell — boutons empilés ===== */
+.action-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 120px;
+}
+
+.btn-add-payment {
+  background: linear-gradient(135deg, #c9a96e, #a0785a);
+  color: white;
+  border: none;
+  padding: 0.28rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.btn-add-payment:hover { opacity: 0.85; }
+
+.btn-history {
+  background: none;
+  border: 1.5px solid #c9a96e;
+  color: #a0785a;
+  padding: 0.28rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-history:hover { background: #faf0e0; }
+
+/* Badge nombre de paiements sur la cellule "payé" */
+.payment-count-badge {
+  background: #c9a96e;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+/* ===== Modal =====*/
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 14px;
+  padding: 1.8rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #a0785a;
+  line-height: 1.3;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #bbb;
+  flex-shrink: 0;
+  transition: color 0.15s;
+  padding: 0.2rem;
+}
+
+.modal-close:hover { color: #555; }
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.15rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+.btn-secondary {
+  background: none;
+  border: 1.5px solid #ddd;
+  color: #666;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover { background: #f5f5f5; }
+
+/* Liste des paiements dans la modale historique */
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.payment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem;
+  background: #faf9f7;
+  border-radius: 8px;
+  border: 1px solid #f0eae2;
+}
+
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.payment-amount {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #2d2d2d;
+}
+
+.payment-date {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.btn-delete-payment {
+  background: none;
+  border: 1.5px solid #f5c2c2;
+  color: #c0392b;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-delete-payment:hover {
+  background: #c0392b;
+  color: white;
+}
+
+.empty-payments {
+  text-align: center;
+  color: #bbb;
+  padding: 1.2rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.payment-total-row {
+  font-size: 0.88rem;
+  color: #555;
+  padding: 0.7rem 0 0;
+  border-top: 1px solid #f0eae2;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.payment-total-sub {
+  font-size: 0.78rem;
+  color: #bbb;
+}
+
+/* ===== Footer ===== */
+footer {
+  text-align: center;
+  padding: 1.2rem;
+  font-size: 0.8rem;
+  color: #bbb;
+}
+
+/* ===== Vendor page ===== */
+
+.btn-back {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  transition: opacity 0.15s;
+}
+
+.btn-back:hover { opacity: 0.65; }
+
+.vendor-finance-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem 1.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem 2.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+  align-items: flex-start;
+}
+
+.finance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.finance-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #b0a090;
+}
+
+.finance-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.finance-value--paid      { color: #4caf82; }
+.finance-value--remaining { color: #e07b54; }
+.finance-value--zero      { color: #bbb; }
+
+.vendor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.vendor-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.6rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vendor-card--full {
+  grid-column: 1 / -1;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #a0785a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-fields--two-col {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 1rem;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field-row label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-row input,
+.field-row textarea {
+  width: 100%;
+}
+
+.field-row textarea {
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* Payments list on vendor page */
+.vendor-payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Inline add-payment form */
+.add-payment-form {
+  border-top: 1.5px solid #f0eae2;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.add-payment-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #a0785a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.add-payment-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.btn-sm {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
+  align-self: flex-start;
+}
+
+/* Save bar */
+.vendor-save-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.save-feedback {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e6b41;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.save-feedback--visible { opacity: 1; }
+
+/* Error state */
+.error-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #aaa;
+}
+
+.error-state p { font-size: 1rem; margin-bottom: 1rem; }
+
+.error-back-link {
+  color: #a0785a;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.error-back-link:hover { text-decoration: underline; }
+
+/* ===== Site web — champ + bouton ouvrir ===== */
+
+.field-with-action {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.field-with-action input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-open-site {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1.5px solid #c9a96e;
+  color: #a0785a;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-open-site:hover { background: #faf0e0; }
+
+/* ===== Checkboxes (section Administratif) ===== */
+
+/* Remise à zéro du style global pour les checkboxes */
+input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 0;
+  accent-color: #c9a96e;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  background: #faf9f7;
+  border-radius: 8px;
+  border: 1.5px solid #f0eae2;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  gap: 0.7rem;
+}
+
+.check-row:hover {
+  background: #fdf5eb;
+  border-color: #e0c99a;
+}
+
+/* Fond doré quand coché — :has() supporté dans Chrome 105+, Firefox 121+, Safari 15.4+ */
+.check-row:has(input:checked) {
+  border-color: #c9a96e;
+  background: #fdf8f0;
+}
+
+.check-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #444;
+  flex: 1;
+}
+
+/* Indicateur visuel supplémentaire (croix / coche texte) */
+.check-indicator {
+  font-size: 0.75rem;
+  color: #bbb;
+  min-width: 1.2rem;
+  text-align: right;
+}
+
+.check-row:has(input:checked) .check-indicator::after {
+  content: '✓';
+  color: #a0785a;
+  font-weight: 700;
+}
+
+/* Checkbox native masquée dans check-row — on garde l'interaction mais on affiche l'indicateur */
+.check-row input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ===== TODO list ===== */
+
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.2rem;
+  min-height: 1rem;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.9rem;
+  background: #faf9f7;
+  border: 1.5px solid #f0eae2;
+  border-radius: 8px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.todo-item--done {
+  background: #f5f5f3;
+  border-color: #e8e8e6;
+}
+
+.todo-item--overdue {
+  border-color: #e8a0a0;
+  background: #fff8f8;
+}
+
+.todo-item--urgent {
+  border-color: #e8c56e;
+  background: #fffbf0;
+}
+
+.todo-check {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #c9a96e;
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+.todo-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #2d2d2d;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.todo-item--done .todo-text {
+  text-decoration: line-through;
+  color: #b0a898;
+}
+
+.todo-due {
+  font-size: 0.76rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+  background: #f0eae2;
+  color: #7a6a5a;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.todo-item--overdue .todo-due {
+  background: #fde8e8;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.todo-item--urgent .todo-due {
+  background: #fef3d0;
+  color: #9a7000;
+  font-weight: 600;
+}
+
+.todo-item--done .todo-due {
+  background: #eee;
+  color: #bbb;
+}
+
+.btn-delete-todo {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-delete-todo:hover {
+  color: #e05050;
+  background: #fde8e8;
+}
+
+.todo-add-form {
+  border-top: 1.5px solid #f0eae2;
+  padding-top: 1rem;
+  margin-top: 0.4rem;
+}
+
+.todo-add-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #7a6a5a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.7rem;
+}
+
+.todo-add-fields {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+
+.todo-add-fields .field-row {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 140px;
+}
+
+.todo-add-fields .field-row:first-child {
+  flex: 3;
+}
+
+.empty-todos {
+  color: #b0a898;
+  font-size: 0.88rem;
+  font-style: italic;
+  padding: 0.3rem 0 0.8rem;
+}
+
+/* ===== TODO dashboard (section index) ===== */
+
+.todo-dashboard-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.todo-dashboard-section h2 {
+  font-size: 1.05rem;
+  color: #5a4a3a;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.todo-dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.todo-dash-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.55rem 0.9rem;
+  background: #faf9f7;
+  border: 1.5px solid #f0eae2;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.todo-dash-item:hover {
+  border-color: #c9a96e;
+  background: #fdf8f0;
+}
+
+.todo-dash-item--overdue {
+  border-color: #e8a0a0;
+  background: #fff8f8;
+}
+
+.todo-dash-item--urgent {
+  border-color: #e8c56e;
+  background: #fffbf0;
+}
+
+.todo-dash-vendor {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #c9a96e;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.todo-dash-text {
+  flex: 1;
+  font-size: 0.88rem;
+  color: #2d2d2d;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todo-dash-due {
+  font-size: 0.74rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  background: #f0eae2;
+  color: #7a6a5a;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.todo-dash-item--overdue .todo-dash-due {
+  background: #fde8e8;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.todo-dash-item--urgent .todo-dash-due {
+  background: #fef3d0;
+  color: #9a7000;
+  font-weight: 600;
+}
+
+.todo-dash-arrow {
+  font-size: 0.8rem;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.todo-dash-group + .todo-dash-group {
+  margin-top: 1.1rem;
+}
+
+.todo-dash-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.todo-dash-group-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.todo-dash-group-title--overdue { color: #c0392b; }
+.todo-dash-group-title--urgent  { color: #9a7000; }
+.todo-dash-group-title--month   { color: #5a7a5a; }
+
+.todo-dash-item--month {
+  border-color: #c4dbc4;
+  background: #f6fbf6;
+}
+
+.todo-dash-item--month .todo-dash-due {
+  background: #e8f5e8;
+  color: #3a6a3a;
+}
+
+.todo-dash-item--month:hover {
+  border-color: #88bb88;
+  background: #edf7ed;
+}
+
+/* ===== Drive export / import ===== */
+
+.drive-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.1rem 1.6rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.drive-header {
+  flex: 1;
+  min-width: 160px;
+}
+
+.drive-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #5a4a3a;
+  display: block;
+}
+
+.drive-hint {
+  font-size: 0.77rem;
+  color: #9a8a7a;
+  margin-top: 0.15rem;
+  display: block;
+}
+
+.drive-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-drive {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.3;
+}
+
+.btn-drive--export {
+  background: #fdf8f0;
+  border-color: #c9a96e;
+  color: #7a5a2a;
+}
+
+.btn-drive--export:hover {
+  background: #faf0e0;
+  border-color: #a0785a;
+}
+
+.btn-drive--import {
+  background: #f0f6fd;
+  border-color: #6ea9c9;
+  color: #2a5a7a;
+}
+
+.btn-drive--import:hover {
+  background: #e0f0fa;
+  border-color: #5a90b0;
+}
+
+.drive-feedback {
+  width: 100%;
+  font-size: 0.82rem;
+  min-height: 1.1em;
+  color: #4a8a4a;
+  margin-top: 0.1rem;
+}
+
+.drive-feedback--error {
+  color: #c0392b;
+}
+
+/* ===== Responsive — mobile (iPhone) ===== */
+@media (max-width: 768px) {
+
+  /* Empêche tout débordement horizontal */
+  html, body { overflow-x: hidden; }
+
+  main {
+    padding: 0 0.75rem;
+    gap: 1rem;
+    margin: 1rem auto;
+  }
+
+  /* ── Header ── */
+  header { padding: 1.2rem 1rem; }
+  header h1 { font-size: 1.35rem; }
+
+  /* ── Alertes ── */
+  .alerts-section { grid-template-columns: 1fr; }
+
+  /* ── Budget ── */
+  .budget-summary {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .budget-amount { font-size: 1.5rem; }
+  .budget-card   { padding: 1rem 1.2rem; }
+
+  /* ── TODO dashboard ── */
+  .todo-dashboard-section { padding: 1rem 1rem; }
+  .todo-dash-vendor       { min-width: 70px; }
+
+  /* ── Formulaire ajout ── */
+  .form-section { padding: 1.2rem 1rem; }
+  .form-grid    { grid-template-columns: 1fr; }
+
+  /* Taille de police 16px sur les inputs/selects pour éviter le zoom iOS */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* ── Filtres ── */
+  .filters-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+  .filter-group  { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .filter-pills  { flex-wrap: wrap; gap: 0.4rem; }
+  .filter-select { width: 100%; }
+  .btn-reset     { width: 100%; justify-content: center; }
+
+  /* ── Boutons — touch targets 44 px min ── */
+  .btn-primary,
+  .btn-secondary,
+  .btn-view,
+  .btn-add-payment,
+  .btn-history,
+  .btn-delete,
+  .btn-drive,
+  .pill {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Table → cartes ── */
+  .table-wrapper {
+    overflow-x: visible;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  #vendorsTable {
+    display: block;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  #vendorsTable thead { display: none; }
+
+  #vendorsTable tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  /* Chaque ligne → carte */
+  #vendorsTable tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+      "name    name    name   "
+      "type    type    type   "
+      "total   paid    remain "
+      "status  due     due    "
+      "actions actions actions";
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    border: 1.5px solid #f0eae2;
+    gap: 0.15rem 0.5rem;
+  }
+
+  /* Urgence — bordure gauche colorée */
+  #vendorsTable tbody tr.row-overdue { border-left: 4px solid #b91c1c; }
+  #vendorsTable tbody tr.row-urgent  { border-left: 4px solid #b45309; }
+
+  /* Affectation des zones */
+  #vendorsTable td.td-name      { grid-area: name;    }
+  #vendorsTable td.td-type      { grid-area: type;    }
+  #vendorsTable td.td-total     { grid-area: total;   }
+  #vendorsTable td.td-paid      { grid-area: paid;    }
+  #vendorsTable td.td-remaining { grid-area: remain;  }
+  #vendorsTable td.td-status    { grid-area: status;  }
+  #vendorsTable td.td-due       { grid-area: due;     }
+  #vendorsTable td.td-actions   { grid-area: actions; }
+
+  /* Styles communs des cellules */
+  #vendorsTable td {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 0.92rem;
+    border: none;
+    padding: 0.15rem 0;
+    background: transparent;
+  }
+
+  /* Libellé au-dessus de la valeur (via data-label) */
+  #vendorsTable td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #9a8a7a;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    line-height: 1;
+    margin-bottom: 0.15rem;
+  }
+
+  /* Nom — titre de la carte */
+  #vendorsTable td.td-name {
+    font-size: 1.05rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #f0eae2;
+    margin-bottom: 0.1rem;
+    align-items: flex-start;
+  }
+
+  /* Type — juste en dessous du nom */
+  #vendorsTable td.td-type {
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #f5f0eb;
+    margin-bottom: 0.1rem;
+  }
+
+  /* Séparateur avant les actions */
+  #vendorsTable td.td-actions {
+    padding-top: 0.6rem;
+    border-top: 1px solid #f0eae2;
+    margin-top: 0.2rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  /* Boutons d'action dans la carte */
+  #vendorsTable td.td-actions .btn-view,
+  #vendorsTable td.td-actions .btn-add-payment,
+  #vendorsTable td.td-actions .btn-history,
+  #vendorsTable td.td-actions .btn-delete {
+    min-height: 38px;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+    flex: 1 1 auto;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* ── Fiche prestataire ── */
+  .vendor-finance-bar {
+    flex-wrap: wrap;
+    gap: 0.8rem 1.2rem;
+  }
+  .vendor-finance-bar .finance-item { min-width: calc(50% - 0.6rem); }
+
+  .vendor-grid         { grid-template-columns: 1fr; }
+  .vendor-card--full   { grid-column: 1; }
+  .card-fields--two-col { grid-template-columns: 1fr; }
+  .add-payment-fields  { grid-template-columns: 1fr; }
+
+  /* ── Section Drive ── */
+  .drive-section  { flex-direction: column; align-items: stretch; }
+  .drive-actions  { flex-direction: column; gap: 0.5rem; }
+  .btn-drive      { width: 100%; }
+
+  /* ── TODO list (fiche) ── */
+  .todo-add-fields { flex-direction: column; }
+  .todo-add-fields .field-row { min-width: 0; }
+
+  /* ── Modal ── */
+  .modal {
+    width: calc(100vw - 2rem);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}

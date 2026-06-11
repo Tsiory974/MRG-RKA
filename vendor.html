@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fiche prestataire — Mariage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="btn-back">← Retour à la liste</a>
+      <h1 id="pageTitle">Fiche prestataire</h1>
+      <p class="subtitle" id="pageSubtitle"></p>
+    </div>
+  </header>
+
+  <main>
+
+    <div id="vendorContent">
+
+      <!-- Résumé financier -->
+      <div class="vendor-finance-bar">
+        <div class="finance-item">
+          <span class="finance-label">Prix total</span>
+          <span class="finance-value" id="vTotal">—</span>
+        </div>
+        <div class="finance-item">
+          <span class="finance-label">Total payé</span>
+          <span class="finance-value finance-value--paid" id="vPaid">—</span>
+        </div>
+        <div class="finance-item">
+          <span class="finance-label">Reste à payer</span>
+          <span class="finance-value" id="vRemaining">—</span>
+        </div>
+        <div class="finance-item">
+          <span class="finance-label">Statut</span>
+          <span id="vStatusBadge"></span>
+        </div>
+        <div class="finance-item">
+          <span class="finance-label">Échéance</span>
+          <div class="due-cell">
+            <span id="vDueDate">—</span>
+            <span id="vUrgencyBadge"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille de cartes -->
+      <div class="vendor-grid">
+
+        <!-- 1. Coordonnées -->
+        <section class="vendor-card">
+          <h2 class="card-title">📞 Coordonnées</h2>
+          <div class="card-fields">
+            <div class="field-row">
+              <label for="fPhone">Téléphone</label>
+              <input type="tel" id="fPhone" placeholder="06 12 34 56 78" />
+            </div>
+            <div class="field-row">
+              <label for="fEmail">Email</label>
+              <input type="email" id="fEmail" placeholder="contact@prestataire.fr" />
+            </div>
+            <div class="field-row">
+              <label for="fAddress">Adresse</label>
+              <input type="text" id="fAddress" placeholder="12 rue de la Paix, Paris" />
+            </div>
+            <div class="field-row">
+              <label for="fSiteWeb">Site web</label>
+              <div class="field-with-action">
+                <input type="url" id="fSiteWeb" placeholder="https://www.prestataire.fr" />
+                <a id="btnOpenSite" class="btn-open-site" href="#" target="_blank"
+                   rel="noopener noreferrer" title="Ouvrir le site" style="display:none;">↗</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Paiements -->
+        <section class="vendor-card">
+          <h2 class="card-title">💳 Paiements <span class="count-badge" id="payCount">0</span></h2>
+
+          <div id="paymentsList" class="vendor-payments-list"></div>
+
+          <div class="add-payment-form">
+            <h3 class="add-payment-title">Ajouter un paiement</h3>
+            <div class="add-payment-fields">
+              <div class="field-row">
+                <label for="newPayAmount">Montant (€)</label>
+                <input type="number" id="newPayAmount" min="0.01" step="0.01" placeholder="0,00" />
+                <span class="field-hint" id="remainingHint"></span>
+              </div>
+              <div class="field-row">
+                <label for="newPayDate">Date</label>
+                <input type="date" id="newPayDate" />
+              </div>
+            </div>
+            <button class="btn-primary btn-sm" id="btnAddPayment">Enregistrer le paiement</button>
+          </div>
+        </section>
+
+        <!-- 3. Administratif -->
+        <section class="vendor-card">
+          <h2 class="card-title">📋 Administratif</h2>
+          <div class="card-fields">
+            <label class="check-row" for="fDevisRecu">
+              <span class="check-label">Devis reçu</span>
+              <input type="checkbox" id="fDevisRecu" />
+              <span class="check-indicator"></span>
+            </label>
+            <label class="check-row" for="fContratSigne">
+              <span class="check-label">Contrat signé</span>
+              <input type="checkbox" id="fContratSigne" />
+              <span class="check-indicator"></span>
+            </label>
+            <label class="check-row" for="fAcompteValide">
+              <span class="check-label">Acompte validé</span>
+              <input type="checkbox" id="fAcompteValide" />
+              <span class="check-indicator"></span>
+            </label>
+            <div class="field-row">
+              <label for="fContrat">Lien contrat</label>
+              <div class="field-with-action">
+                <input type="url" id="fContrat" placeholder="https://drive.google.com/…" />
+                <a id="btnOpenContrat" class="btn-open-site" href="#" target="_blank"
+                   rel="noopener noreferrer" title="Ouvrir le contrat" style="display:none;">↗</a>
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="fRib">RIB / IBAN</label>
+              <input type="text" id="fRib" placeholder="FR76 0000 0000 0000 0000 0000 000" />
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Organisation -->
+        <section class="vendor-card">
+          <h2 class="card-title">🗓️ Organisation</h2>
+          <div class="card-fields">
+            <div class="field-row">
+              <label for="fHeurePrestation">Heure de prestation</label>
+              <input type="time" id="fHeurePrestation" />
+            </div>
+            <div class="field-row">
+              <label for="fLieuPrestation">Lieu de prestation</label>
+              <input type="text" id="fLieuPrestation" placeholder="Salle des fêtes, Château de…" />
+            </div>
+            <div class="field-row">
+              <label for="fProchaineAction">Prochaine action</label>
+              <input type="text" id="fProchaineAction"
+                placeholder="Rappeler pour confirmer le menu, envoyer RIB…" />
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. À faire (pleine largeur) -->
+        <section class="vendor-card vendor-card--full">
+          <h2 class="card-title">✅ À faire <span class="count-badge" id="todoCount">0</span></h2>
+
+          <div id="todoList" class="todo-list"></div>
+
+          <div class="todo-add-form">
+            <h3 class="todo-add-title">Ajouter une tâche</h3>
+            <div class="todo-add-fields">
+              <div class="field-row">
+                <label for="newTodoText">Tâche</label>
+                <input type="text" id="newTodoText"
+                  placeholder="Confirmer le menu, envoyer le RIB…" />
+              </div>
+              <div class="field-row">
+                <label for="newTodoDate">Échéance (optionnelle)</label>
+                <input type="date" id="newTodoDate" />
+              </div>
+            </div>
+            <button class="btn-primary btn-sm" id="btnAddTodo">Ajouter la tâche</button>
+          </div>
+        </section>
+
+        <!-- 6. Notes (pleine largeur) -->
+        <section class="vendor-card vendor-card--full">
+          <h2 class="card-title">📝 Notes</h2>
+          <div class="field-row">
+            <textarea id="fNotes" rows="4"
+              placeholder="Conditions particulières, accords, documents à fournir…"></textarea>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Barre de sauvegarde -->
+      <div class="vendor-save-bar">
+        <button class="btn-primary" id="btnSave">💾 Sauvegarder les modifications</button>
+        <span class="save-feedback" id="saveFeedback"></span>
+      </div>
+
+    </div>
+
+    <!-- État d'erreur -->
+    <div id="errorState" class="vendor-card error-state" style="display:none;">
+      <p>Prestataire introuvable ou lien invalide.</p>
+      <a href="index.html" class="error-back-link">← Retour à la liste</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Données sauvegardées localement dans votre navigateur.</p>
+  </footer>
+
+  <script src="vendor.js"></script>
+</body>
+</html>

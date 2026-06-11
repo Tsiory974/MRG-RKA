@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord Mariage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <h1>💍 Tableau de bord Mariage</h1>
+      <p class="subtitle">Gestion des prestataires</p>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Alertes paiements -->
+    <section class="alerts-section" id="alertsSection" style="display:none;">
+      <div class="alert-card alert-overdue" id="alertOverdue">
+        <span class="alert-icon">🚨</span>
+        <div class="alert-body">
+          <span class="alert-count" id="countOverdue">0</span>
+          <span class="alert-label">en retard</span>
+        </div>
+      </div>
+      <div class="alert-card alert-urgent" id="alertUrgent">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-body">
+          <span class="alert-count" id="countUrgent">0</span>
+          <span class="alert-label">urgent (&lt; 7 j)</span>
+        </div>
+      </div>
+      <div class="alert-card alert-ok" id="alertOk">
+        <span class="alert-icon">✅</span>
+        <div class="alert-body">
+          <span class="alert-count" id="countPaid">0</span>
+          <span class="alert-label">payés</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Résumé budget -->
+    <section class="budget-summary">
+      <div class="budget-card total">
+        <span class="budget-label">Budget total</span>
+        <span class="budget-amount" id="totalBudget">0 €</span>
+      </div>
+      <div class="budget-card paid">
+        <span class="budget-label">Déjà payé</span>
+        <span class="budget-amount" id="totalPaid">0 €</span>
+      </div>
+      <div class="budget-card remaining">
+        <span class="budget-label">Reste à payer</span>
+        <span class="budget-amount" id="totalRemaining">0 €</span>
+      </div>
+    </section>
+
+    <!-- Actions à faire (todos cross-prestataires) -->
+    <section class="todo-dashboard-section" id="todoDashboardSection" style="display:none;">
+      <h2>📋 Actions à faire <span class="count-badge" id="todoTotalCount">0</span></h2>
+      <div id="todoDashboardList" class="todo-dashboard-list"></div>
+    </section>
+
+    <!-- Formulaire ajout prestataire -->
+    <section class="form-section">
+      <h2>Ajouter un prestataire</h2>
+      <form id="vendorForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="vendorName">Nom du prestataire</label>
+            <input type="text" id="vendorName" placeholder="Ex : Maison Dupont" required />
+          </div>
+          <div class="form-group">
+            <label for="vendorType">Type</label>
+            <select id="vendorType" required>
+              <option value="">-- Choisir --</option>
+              <option value="Traiteur">Traiteur</option>
+              <option value="DJ">DJ</option>
+              <option value="Photographe">Photographe</option>
+              <option value="Vidéaste">Vidéaste</option>
+              <option value="Salle">Salle</option>
+              <option value="Fleuriste">Fleuriste</option>
+              <option value="Robe / Costume">Robe / Costume</option>
+              <option value="Animation">Animation</option>
+              <option value="Transport">Transport</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <!-- Champ personnalisé affiché uniquement si "Autre" est sélectionné -->
+          <div class="form-group" id="customTypeGroup" style="display:none;">
+            <label for="vendorCustomType">Précisez le type</label>
+            <input type="text" id="vendorCustomType" placeholder="Ex : Officiant, Gâteau…" maxlength="50" />
+          </div>
+          <div class="form-group">
+            <label for="vendorTotal">Prix total (€)</label>
+            <input type="number" id="vendorTotal" placeholder="0" min="0" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="vendorPaid">Acompte initial (€)</label>
+            <input type="number" id="vendorPaid" placeholder="0" min="0" step="0.01" value="0" />
+          </div>
+          <div class="form-group">
+            <label for="vendorDueDate">Date de paiement prévue</label>
+            <input type="date" id="vendorDueDate" />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">+ Ajouter le prestataire</button>
+      </form>
+    </section>
+
+    <!-- Liste des prestataires -->
+    <section class="vendors-section">
+      <h2>Prestataires <span class="count-badge" id="vendorCount">0</span></h2>
+
+      <!-- Barre de filtres — masquée tant qu'il n'y a aucun prestataire -->
+      <div class="filters-bar" id="filtersBar" style="display:none;">
+
+        <div class="filter-group">
+          <span class="filter-label">Statut</span>
+          <div class="filter-pills">
+            <button class="pill active" data-filter="payment" data-value="all">Tous</button>
+            <button class="pill" data-filter="payment" data-value="unpaid">Non payé</button>
+            <button class="pill" data-filter="payment" data-value="partial">Acompte</button>
+            <button class="pill" data-filter="payment" data-value="paid">Payé</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Urgence</span>
+          <div class="filter-pills">
+            <button class="pill active" data-filter="urgency" data-value="all">Tous</button>
+            <button class="pill" data-filter="urgency" data-value="overdue">En retard</button>
+            <button class="pill" data-filter="urgency" data-value="urgent">Urgent</button>
+            <button class="pill" data-filter="urgency" data-value="normal">Normal</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Type</span>
+          <select id="filterType" class="filter-select">
+            <option value="all">Tous les types</option>
+          </select>
+        </div>
+
+        <button class="btn-reset" id="btnResetFilters" style="display:none;">✕ Réinitialiser</button>
+
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        <p id="emptyStateMsg">Aucun prestataire ajouté pour l'instant.</p>
+        <p id="emptyStateHint">Utilisez le formulaire ci-dessus pour commencer.</p>
+      </div>
+
+      <div class="table-wrapper" id="tableWrapper" style="display:none;">
+        <table id="vendorsTable">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Prix total</th>
+              <th>Payé</th>
+              <th>Reste</th>
+              <th>Statut</th>
+              <th>Échéance</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="vendorsBody">
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Export / Import Drive -->
+    <section class="drive-section">
+      <div class="drive-header">
+        <span class="drive-title">☁️ Sauvegarde</span>
+        <span class="drive-hint">Utilisez Google Drive pour partager vos données entre appareils</span>
+      </div>
+      <div class="drive-actions">
+        <button class="btn-drive btn-drive--export" id="btnExport">⬇ Sauvegarder (Drive)</button>
+        <button class="btn-drive btn-drive--import" id="btnImport">⬆ Importer (Drive)</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" />
+      </div>
+      <p class="drive-feedback" id="driveFeedback"></p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Données sauvegardées localement dans votre navigateur.</p>
+  </footer>
+
+  <!-- Modal paiements -->
+  <div class="modal-overlay" id="paymentModal" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle"></h3>
+        <button class="modal-close" id="modalClose" aria-label="Fermer">✕</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
