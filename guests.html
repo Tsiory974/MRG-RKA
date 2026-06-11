@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des invités — Mariage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="btn-back">← Retour au tableau de bord</a>
+      <h1>👰 Gestion des invités</h1>
+      <p class="subtitle">Liste, groupes et réponses</p>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Statistiques -->
+    <section class="guests-stats-section">
+      <div class="guests-stats">
+        <div class="guest-stat guest-stat--total">
+          <span class="guest-stat-value" id="statTotal">0</span>
+          <span class="guest-stat-label">Total invités</span>
+        </div>
+        <div class="guest-stat guest-stat--people">
+          <span class="guest-stat-value" id="statPeople">0</span>
+          <span class="guest-stat-label">Total personnes</span>
+        </div>
+        <div class="guest-stat guest-stat--confirmed">
+          <span class="guest-stat-value" id="statConfirmed">0</span>
+          <span class="guest-stat-label">Confirmés</span>
+        </div>
+        <div class="guest-stat guest-stat--pending">
+          <span class="guest-stat-value" id="statPending">0</span>
+          <span class="guest-stat-label">En attente</span>
+        </div>
+        <div class="guest-stat guest-stat--declined">
+          <span class="guest-stat-value" id="statDeclined">0</span>
+          <span class="guest-stat-label">Refusés</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulaire ajout / édition -->
+    <section class="form-section">
+      <h2 id="formTitle">Ajouter un invité</h2>
+      <form id="guestForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="guestName">Nom</label>
+            <input type="text" id="guestName" placeholder="Ex : Famille Martin" required />
+          </div>
+          <div class="form-group">
+            <label for="guestCount">Nombre de personnes</label>
+            <input type="number" id="guestCount" min="1" step="1" value="1" required />
+          </div>
+          <div class="form-group form-group--full">
+            <label for="guestNames">Noms des invités</label>
+            <input type="text" id="guestNames" placeholder="Ex : Jean, Marie, Paul" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="guestEmail">Email</label>
+            <input type="email" id="guestEmail" placeholder="invite@email.fr" />
+          </div>
+          <div class="form-group">
+            <label for="guestPhone">Téléphone</label>
+            <input type="tel" id="guestPhone" placeholder="06 12 34 56 78" />
+          </div>
+          <div class="form-group">
+            <label for="guestGroup">Groupe</label>
+            <input type="text" id="guestGroup" list="groupOptions"
+              placeholder="Famille, Amis, Cousins…" autocomplete="off" />
+            <datalist id="groupOptions"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="guestMeal">Type de repas</label>
+            <select id="guestMeal" required>
+              <option value="standard">Standard</option>
+              <option value="vegetarien">Végétarien</option>
+              <option value="allergie">Allergie</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="guestConfirmed">Personnes confirmées</label>
+            <input type="number" id="guestConfirmed" min="0" step="1" placeholder="Vide = en attente" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="btnSubmit">+ Ajouter</button>
+          <button type="button" class="btn-secondary" id="btnCancelEdit" style="display:none;">Annuler</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Liste des invités -->
+    <section class="vendors-section">
+      <h2>Invités <span class="count-badge" id="guestListCount">0</span></h2>
+
+      <!-- Recherche + filtres -->
+      <div class="guest-controls" id="guestControls" style="display:none;">
+        <input type="search" id="guestSearch" class="guest-search"
+          placeholder="🔍 Rechercher un invité…" autocomplete="off" />
+        <div class="filter-pills" id="guestStatusFilters">
+          <button class="pill active" data-status="all">Tous</button>
+          <button class="pill" data-status="pending">En attente</button>
+          <button class="pill" data-status="confirmed">Confirmés</button>
+          <button class="pill" data-status="partial">Partiel</button>
+          <button class="pill" data-status="declined">Refusés</button>
+        </div>
+      </div>
+
+      <div id="guestsEmpty" class="empty-state">
+        <p>Aucun invité ajouté pour l'instant.</p>
+        <p>Utilisez le formulaire ci-dessus pour commencer.</p>
+      </div>
+
+      <div id="guestsList" class="guests-accordion"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Données sauvegardées localement dans votre navigateur.</p>
+  </footer>
+
+  <script src="guests.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'mariage_prestataires';
+const GUESTS_KEY  = 'mariage_invites';
 
 const PRESET_TYPES = [
   'Traiteur', 'DJ', 'Photographe', 'Vidéaste',
@@ -642,6 +643,53 @@ function importData(file) {
   reader.readAsText(file);
 }
 
+// ===== Invités =====
+
+function loadGuests() {
+  const raw = localStorage.getItem(GUESTS_KEY);
+  if (!raw) return [];
+  try {
+    const guests = JSON.parse(raw);
+    return Array.isArray(guests) ? guests : [];
+  } catch (e) {
+    console.error('[loadGuests] JSON corrompu:', e);
+    return [];
+  }
+}
+
+function guestInvited(g) {
+  return Number(g.count) || 0;
+}
+
+function guestConfirmed(g) {
+  const invited = guestInvited(g);
+  if (g.confirmedCount == null) {
+    return g.status === 'confirmed' ? invited : 0;  // repli données héritées
+  }
+  return Math.max(0, Math.min(Number(g.confirmedCount) || 0, invited));
+}
+
+function guestStatus(g) {
+  if (g.confirmedCount == null) {
+    if (g.status === 'confirmed') return 'confirmed';
+    if (g.status === 'declined')  return 'declined';
+    return 'pending';
+  }
+  const confirmed = guestConfirmed(g);
+  if (confirmed <= 0)                  return 'declined';
+  if (confirmed >= guestInvited(g))    return 'confirmed';
+  return 'partial';
+}
+
+function renderGuestsSummary() {
+  const guests = loadGuests();
+  const sum = fn => guests.reduce((n, g) => n + fn(g), 0);
+
+  document.getElementById('guestsTotal').textContent     = guests.length;
+  document.getElementById('guestsConfirmed').textContent = sum(guestConfirmed);
+  document.getElementById('guestsPending').textContent   = sum(g => guestStatus(g) === 'pending' ? guestInvited(g) : 0);
+}
+
 // ===== Initialisation =====
 
 document.getElementById('vendorForm').addEventListener('submit', addVendor);
@@ -665,3 +713,4 @@ document.getElementById('importFileInput').addEventListener('change', e => {
 });
 
 renderVendors();
+renderGuestsSummary();
