@@ -162,6 +162,40 @@ function renderPage() {
 
   renderPayments(vendor);
   renderTodos(vendor);
+  renderContactBar(vendor);
+}
+
+function renderContactBar(vendor) {
+  const bar     = document.getElementById('contactBar');
+  const btnCall = document.getElementById('btnCall');
+  const btnSms  = document.getElementById('btnSms');
+  const btnMail = document.getElementById('btnMail');
+
+  const phone = (vendor.phone || '').trim().replace(/\s+/g, '');
+  const email = (vendor.email || '').trim();
+
+  if (!phone && !email) { bar.style.display = 'none'; return; }
+
+  if (phone) {
+    btnCall.href          = `tel:${phone}`;
+    btnCall.style.display = 'inline-flex';
+    btnSms.href           = `sms:${phone}`;
+    btnSms.style.display  = 'inline-flex';
+  } else {
+    btnCall.style.display = 'none';
+    btnSms.style.display  = 'none';
+  }
+
+  if (email) {
+    const subject = encodeURIComponent(`Mariage — ${vendor.name}`);
+    const body    = encodeURIComponent(`Bonjour,\n\nSuite à notre échange concernant notre mariage…\n\nCordialement`);
+    btnMail.href          = `mailto:${email}?subject=${subject}&body=${body}`;
+    btnMail.style.display = 'inline-flex';
+  } else {
+    btnMail.style.display = 'none';
+  }
+
+  bar.style.display = 'flex';
 }
 
 function updateSiteWebButton(url) {

@@ -1009,6 +1009,56 @@ footer {
 
 .btn-open-site:hover { background: #faf0e0; }
 
+/* ===== Contact bar ===== */
+
+.contact-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  background: white;
+  border-radius: 12px;
+  padding: 0.9rem 1.4rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  border: 1.5px solid #f0eae2;
+}
+
+.btn-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-contact:active { transform: scale(0.97); }
+
+.btn-contact--call {
+  background: #eaf7ef;
+  color: #1e6b41;
+  border: 1.5px solid #b7e4c7;
+}
+.btn-contact--call:hover { background: #d4f0df; }
+
+.btn-contact--sms {
+  background: #eef4ff;
+  color: #1d4ed8;
+  border: 1.5px solid #bfdbfe;
+}
+.btn-contact--sms:hover { background: #dbeafe; }
+
+.btn-contact--mail {
+  background: #fdf8f0;
+  color: #92400e;
+  border: 1.5px solid #fde68a;
+}
+.btn-contact--mail:hover { background: #fef3c7; }
+
 /* ===== Checkboxes (section Administratif) ===== */
 
 /* Remise à zéro du style global pour les checkboxes */
@@ -1503,6 +1553,7 @@ input[type="checkbox"] {
   .btn-history,
   .btn-delete,
   .btn-drive,
+  .btn-contact,
   .pill {
     min-height: 44px;
     display: inline-flex;
