@@ -592,6 +592,10 @@ function showDriveFeedback(msg, isError = false) {
   setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 5000);
 }
 
+function isIPhone() {
+  return /iPhone/i.test(navigator.userAgent);
+}
+
 function exportData() {
   const vendors = loadVendors();
   const blob    = new Blob([JSON.stringify(vendors, null, 2)], { type: 'application/json' });
@@ -605,8 +609,12 @@ function exportData() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showDriveFeedback('✓ Fichier téléchargé. Déposez-le dans Google Drive.');
-  setTimeout(() => window.open('https://drive.google.com', '_blank', 'noopener,noreferrer'), 500);
+  if (isIPhone()) {
+    showDriveFeedback('✓ Fichier téléchargé. Sur iPhone, ouvrez l\'app Fichiers puis partagez le fichier vers Google Drive.');
+  } else {
+    showDriveFeedback('✓ Fichier téléchargé. Déposez-le dans Google Drive.');
+    setTimeout(() => window.open('https://drive.google.com', '_blank', 'noopener,noreferrer'), 500);
+  }
 }
 
 function importData(file) {
