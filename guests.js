@@ -102,7 +102,12 @@ function compactNames(arr) {
 }
 
 function generateId() {
-  return Date.now().toString();
+  return Date.now().toString() + Math.random().toString(36).slice(2, 6);
+}
+
+// Minuscules + suppression des accents, pour une recherche insensible aux accents
+function normalizeText(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 // ===== Statut dérivé de confirmedCount =====
@@ -134,7 +139,13 @@ function guestStatus(g) {
 
 // ===== localStorage =====
 
+// Cache mémoire : évite de re-parser le localStorage à chaque rendu
+// (recherche au clavier). Invalidé par saveGuests (même référence de tableau).
+let guestsCache = null;
+
 function loadGuests() {
+  if (guestsCache) return guestsCache;
+
   const raw = localStorage.getItem(GUESTS_KEY);
   if (!raw) return [];
 
@@ -159,11 +170,18 @@ function loadGuests() {
   });
   if (changed) saveGuests(guests);
 
+  guestsCache = guests;
   return guests;
 }
 
 function saveGuests(guests) {
-  localStorage.setItem(GUESTS_KEY, JSON.stringify(guests));
+  guestsCache = guests;
+  try {
+    localStorage.setItem(GUESTS_KEY, JSON.stringify(guests));
+  } catch (e) {
+    console.error('[saveGuests]', e);
+    alert('Erreur : impossible d\'enregistrer les invités (stockage plein ou indisponible).');
+  }
 }
 
 // ===== CRUD =====
@@ -206,7 +224,7 @@ function updateGuest(id) {
   if (!data) return;
   const guests = loadGuests();
   const g = guests.find(g => String(g.id) === String(id));
-  if (!g) return;
+  if (!g) { resetForm(); renderGuests(); return; }  // invité supprimé entre-temps
   Object.assign(g, data);
   delete g.status;  // statut désormais dérivé de confirmedCount
   saveGuests(guests);
@@ -243,6 +261,7 @@ function startEdit(id) {
   document.getElementById('guestGroup').value  = g.group ? groupLabel(g.group) : '';
   document.getElementById('guestMeal').value   = g.meal   || 'standard';
   document.getElementById('guestConfirmed').value = (g.confirmedCount == null) ? '' : g.confirmedCount;
+  syncConfirmedMax();
 
   document.getElementById('formTitle').textContent  = 'Modifier l\'invité';
   document.getElementById('btnSubmit').textContent  = '💾 Enregistrer';
@@ -267,16 +286,23 @@ function renderStats(guests) {
   document.getElementById('statTotal').textContent     = guests.length;
   document.getElementById('statPeople').textContent    = sum(guestInvited);
   document.getElementById('statConfirmed').textContent = sum(guestConfirmed);
-  document.getElementById('statPending').textContent   = sum(g => guestStatus(g) === 'pending'  ? guestInvited(g) : 0);
-  document.getElementById('statDeclined').textContent  = sum(g => guestStatus(g) === 'declined' ? guestInvited(g) : 0);
+  document.getElementById('statPending').textContent   = sum(g => guestStatus(g) === 'pending' ? guestInvited(g) : 0);
+  // Refusés = foyers refusés + places non confirmées des foyers partiels,
+  // pour que Confirmés + En attente + Refusés = Total personnes
+  document.getElementById('statDeclined').textContent  = sum(g => {
+    const s = guestStatus(g);
+    if (s === 'declined') return guestInvited(g);
+    if (s === 'partial')  return guestInvited(g) - guestConfirmed(g);
+    return 0;
+  });
 }
 
 // ===== Rendu =====
 
 function matchesFilters(g) {
-  const q = searchQuery.trim().toLowerCase();
+  const q = normalizeText(searchQuery.trim());
   if (q) {
-    const haystack = `${g.name || ''} ${g.names || ''}`.toLowerCase();
+    const haystack = normalizeText(`${g.name || ''} ${g.names || ''}`);
     if (!haystack.includes(q)) return false;
   }
   if (activeStatus !== 'all' && guestStatus(g) !== activeStatus) return false;
@@ -291,6 +317,7 @@ function renderCard(g) {
   const meal      = g.meal || 'standard';
   const phone     = (g.phone || '').trim();
   const email     = (g.email || '').trim();
+  const idAttr    = escapeHtml(String(g.id));
 
   const namesArr = splitNames(g.names);
   // Nom principal = prénoms (repli sur le nom du foyer si absents)
@@ -312,15 +339,15 @@ function renderCard(g) {
       </span>` : ''}
       <span class="guest-info-line">${MEAL_ICON[meal] || ''} ${MEAL_LABELS[meal] || meal}</span>
       <div class="guest-actions">
-        ${status !== 'confirmed' ? `<button class="btn-quick btn-quick--confirm" data-action="confirm" data-id="${g.id}">✓ Confirmer</button>` : ''}
-        ${status !== 'declined'  ? `<button class="btn-quick btn-quick--decline" data-action="decline" data-id="${g.id}">✕ Refuser</button>` : ''}
-        <button class="btn-edit-guest" data-id="${g.id}">✏️ Modifier</button>
-        <button class="btn-delete" data-id="${g.id}">Supprimer</button>
+        ${status !== 'confirmed' ? `<button class="btn-quick btn-quick--confirm" data-action="confirm" data-id="${idAttr}">✓ Confirmer</button>` : ''}
+        ${status !== 'declined'  ? `<button class="btn-quick btn-quick--decline" data-action="decline" data-id="${idAttr}">✕ Refuser</button>` : ''}
+        <button class="btn-edit-guest" data-id="${idAttr}">✏️ Modifier</button>
+        <button class="btn-delete" data-id="${idAttr}">Supprimer</button>
       </div>
     </div>`;
 
   return `
-    <div class="guest-card ${expanded ? 'guest-card--open' : ''}" data-id="${g.id}">
+    <div class="guest-card ${expanded ? 'guest-card--open' : ''}" data-id="${idAttr}">
       <div class="guest-card-head">
         <span class="guest-card-titles">
           <span class="guest-card-name">${escapeHtml(primary)}</span>
@@ -354,9 +381,13 @@ function renderGuests() {
   const empty = document.getElementById('guestsEmpty');
   const list  = document.getElementById('guestsList');
 
+  const emptyMsg  = document.getElementById('guestsEmptyMsg');
+  const emptyHint = document.getElementById('guestsEmptyHint');
+
   if (guests.length === 0) {
     empty.style.display = 'block';
-    empty.querySelector('p').textContent = 'Aucun invité ajouté pour l\'instant.';
+    emptyMsg.textContent = 'Aucun invité ajouté pour l\'instant.';
+    emptyHint.style.display = 'block';
     list.innerHTML = '';
     return;
   }
@@ -365,7 +396,8 @@ function renderGuests() {
 
   if (filtered.length === 0) {
     empty.style.display = 'block';
-    empty.querySelector('p').textContent = 'Aucun invité ne correspond aux critères.';
+    emptyMsg.textContent = 'Aucun invité ne correspond aux critères.';
+    emptyHint.style.display = 'none';   // le conseil "utilisez le formulaire" n'a pas de sens ici
     list.innerHTML = '';
     return;
   }
@@ -376,11 +408,14 @@ function renderGuests() {
   const groups = [...new Set(filtered.map(g => g.group || ''))]
     .sort((a, b) => groupLabel(a).localeCompare(groupLabel(b), 'fr', { sensitivity: 'base' }));
 
+  // Statut précalculé une fois par invité (évite n·log(n) appels dans le tri)
+  const statusRank = new Map(filtered.map(g => [g, STATUS_ORDER[guestStatus(g)] ?? 9]));
+
   let html = '';
   groups.forEach(group => {
     const inGroup = filtered
       .filter(g => (g.group || '') === group)
-      .sort((a, b) => (STATUS_ORDER[guestStatus(a)] ?? 9) - (STATUS_ORDER[guestStatus(b)] ?? 9));
+      .sort((a, b) => statusRank.get(a) - statusRank.get(b));
 
     const open      = openGroups[group] !== false;   // ouvert par défaut
     const limit     = groupLimits[group] || PAGE_SIZE;
@@ -416,6 +451,19 @@ document.getElementById('guestForm').addEventListener('submit', e => {
 });
 
 document.getElementById('btnCancelEdit').addEventListener('click', resetForm);
+
+// Borne le champ "Personnes confirmées" au nombre d'invités saisi
+function syncConfirmedMax() {
+  const count = parseInt(document.getElementById('guestCount').value, 10);
+  const confirmedInput = document.getElementById('guestConfirmed');
+  if (count >= 1) {
+    confirmedInput.max = count;
+    if (parseInt(confirmedInput.value, 10) > count) confirmedInput.value = count;
+  } else {
+    confirmedInput.removeAttribute('max');
+  }
+}
+document.getElementById('guestCount').addEventListener('input', syncConfirmedMax);
 
 document.getElementById('guestsList').addEventListener('click', e => {
   // Laisser fonctionner les liens tel:/mailto:
@@ -453,18 +501,26 @@ document.getElementById('guestsList').addEventListener('click', e => {
     return;
   }
 
-  const card = e.target.closest('.guest-card');
-  if (card) {
-    const id = String(card.dataset.id);
+  // Déplier/replier : uniquement via l'en-tête de la carte — un clic dans le
+  // détail (sélection du téléphone, copie d'un prénom…) ne referme plus la carte
+  const head = e.target.closest('.guest-card-head');
+  if (head) {
+    const card = head.closest('.guest-card');
+    const id   = String(card.dataset.id);
     if (expandedIds.has(id)) expandedIds.delete(id);
     else expandedIds.add(id);
-    renderGuests();
+    // Mise à jour ciblée de cette carte seulement (pas de re-render global)
+    const g = loadGuests().find(x => String(x.id) === id);
+    if (g) card.outerHTML = renderCard(g);
+    else renderGuests();
   }
 });
 
+let searchDebounce = null;
 document.getElementById('guestSearch').addEventListener('input', e => {
   searchQuery = e.target.value;
-  renderGuests();
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(renderGuests, 150);
 });
 
 document.getElementById('guestStatusFilters').addEventListener('click', e => {

@@ -28,8 +28,15 @@ function formatDate(dateStr) {
   return `${day}/${month}/${year}`;
 }
 
+// Parse 'YYYY-MM-DD' en date LOCALE (new Date('YYYY-MM-DD') parse en UTC :
+// décalage d'un jour possible selon le fuseau horaire)
+function parseLocalDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function generateId() {
-  return Date.now().toString();
+  return Date.now().toString() + Math.random().toString(36).slice(2, 6);
 }
 
 function escapeHtml(str) {
@@ -79,8 +86,20 @@ function loadVendors() {
   return vendors;
 }
 
+// Écriture localStorage protégée (quota plein, navigation privée…)
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    console.error('[safeSetItem]', key, e);
+    alert('Erreur : impossible d\'enregistrer les données (stockage plein ou indisponible).');
+    return false;
+  }
+}
+
 function saveVendors(vendors) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+  safeSetItem(STORAGE_KEY, vendors);
 }
 
 // ===== Calculs =====
@@ -110,8 +129,7 @@ function getUrgencyStatus(vendor) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(vendor.dueDate);
-  due.setHours(0, 0, 0, 0);
+  const due = parseLocalDate(vendor.dueDate);
   const diffDays = Math.round((due - today) / 86_400_000);
 
   if (diffDays < 0)  return 'overdue';
@@ -163,8 +181,7 @@ function getTodoDashboardUrgency(todo) {
   if (!todo.dueDate) return 'none';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(todo.dueDate);
-  due.setHours(0, 0, 0, 0);
+  const due = parseLocalDate(todo.dueDate);
   const diffDays = Math.round((due - today) / 86_400_000);
   if (diffDays < 0) return 'overdue';
   if (diffDays <= 7) return 'urgent';
@@ -285,10 +302,10 @@ function createRow(vendor) {
       ${urgencyBadge}
     </td>
     <td class="td-actions action-cell">
-      <a class="btn-view" href="vendor.html?id=${vendor.id}">👁 Voir</a>
-      <button class="btn-add-payment" data-id="${vendor.id}">+ Paiement</button>
-      <button class="btn-history"     data-id="${vendor.id}">📋 Historique${payCount > 0 ? ` (${payCount})` : ''}</button>
-      <button class="btn-delete"      data-id="${vendor.id}">Supprimer</button>
+      <a class="btn-view" href="vendor.html?id=${encodeURIComponent(vendor.id)}">👁 Voir</a>
+      <button class="btn-add-payment" data-id="${escapeHtml(vendor.id)}">+ Paiement</button>
+      <button class="btn-history"     data-id="${escapeHtml(vendor.id)}">📋 Historique${payCount > 0 ? ` (${payCount})` : ''}</button>
+      <button class="btn-delete"      data-id="${escapeHtml(vendor.id)}">Supprimer</button>
     </td>
   `;
   return tr;
@@ -518,6 +535,10 @@ function openAddPaymentModal(vendorId) {
     const vendors = loadVendors();
     const v = vendors.find(v => v.id === vendorId);
     if (v) {
+      const rest = v.total - getPaidTotal(v);
+      if (amount > rest && !confirm(
+        `Ce paiement (${formatCurrency(amount)}) dépasse le reste à payer (${formatCurrency(Math.max(rest, 0))}). Enregistrer quand même ?`
+      )) return;
       v.payments.push({ amount, date });
       saveVendors(vendors);
       closeModal();
@@ -598,9 +619,14 @@ function isIPhone() {
 }
 
 function exportData() {
-  const vendors = loadVendors();
-  const blob    = new Blob([JSON.stringify(vendors, null, 2)], { type: 'application/json' });
-  const url     = URL.createObjectURL(blob);
+  // v2 : sauvegarde complète (prestataires + invités)
+  const payload = {
+    version: 2,
+    vendors: loadVendors(),
+    guests:  loadGuests(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
   a.href     = url;
@@ -618,27 +644,105 @@ function exportData() {
   }
 }
 
+// Valide et normalise un prestataire importé ; null si l'entrée est inutilisable
+function sanitizeVendor(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const name = String(v.name || '').trim();
+  if (!name) return null;
+
+  const payments = Array.isArray(v.payments)
+    ? v.payments
+        .filter(p => p && typeof p === 'object')
+        .map(p => ({ amount: Number(p.amount) || 0, date: String(p.date || '') }))
+        .filter(p => p.amount > 0)
+    : [];
+
+  const todos = Array.isArray(v.todos)
+    ? v.todos
+        .filter(t => t && typeof t === 'object' && t.text)
+        .map(t => ({ text: String(t.text), done: !!t.done, dueDate: String(t.dueDate || '') }))
+    : [];
+
+  return {
+    ...v,                                   // conserve les champs annexes (notes, contrat…)
+    id:      String(v.id || generateId()),
+    name,
+    type:    String(v.type || 'Autre'),
+    total:   Number(v.total) || 0,
+    payments,
+    todos,
+    dueDate: String(v.dueDate || ''),
+  };
+}
+
+// Valide et normalise un invité importé ; null si l'entrée est inutilisable
+function sanitizeGuest(g) {
+  if (!g || typeof g !== 'object' || Array.isArray(g)) return null;
+  const name = String(g.name || '').trim();
+  if (!name) return null;
+
+  const count = Math.max(1, parseInt(g.count, 10) || 1);
+  let confirmedCount = null;
+  if (g.confirmedCount != null) {
+    confirmedCount = Math.max(0, Math.min(parseInt(g.confirmedCount, 10) || 0, count));
+  }
+
+  return {
+    ...g,                                   // conserve status hérité, etc.
+    id:    String(g.id || generateId()),
+    name,
+    count,
+    confirmedCount,
+    names: String(g.names || ''),
+    email: String(g.email || ''),
+    phone: String(g.phone || ''),
+    group: String(g.group || ''),
+    meal:  String(g.meal  || 'standard'),
+  };
+}
+
 function importData(file) {
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = e => {
-    let vendors;
+    let data;
     try {
-      vendors = JSON.parse(e.target.result);
+      data = JSON.parse(e.target.result);
     } catch {
       showDriveFeedback('Erreur : le fichier n\'est pas un JSON valide.', true);
       return;
     }
 
-    if (!Array.isArray(vendors)) {
-      showDriveFeedback('Erreur : le fichier ne contient pas une liste de prestataires.', true);
+    // Ancien format : tableau = prestataires seuls. Nouveau : { version, vendors, guests }
+    let rawVendors, rawGuests = null;
+    if (Array.isArray(data)) {
+      rawVendors = data;
+    } else if (data && typeof data === 'object' && Array.isArray(data.vendors)) {
+      rawVendors = data.vendors;
+      rawGuests  = Array.isArray(data.guests) ? data.guests : null;
+    } else {
+      showDriveFeedback('Erreur : format de fichier non reconnu.', true);
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+    const vendors = rawVendors.map(sanitizeVendor).filter(Boolean);
+    const skipped = rawVendors.length - vendors.length;
+    if (!safeSetItem(STORAGE_KEY, vendors)) return;
+
+    let guestMsg = '';
+    if (rawGuests) {
+      const guests = rawGuests.map(sanitizeGuest).filter(Boolean);
+      if (!safeSetItem(GUESTS_KEY, guests)) return;
+      guestMsg = ` et ${guests.length} invité(s)`;
+    }
+
     renderVendors();
-    showDriveFeedback(`✓ ${vendors.length} prestataire(s) importé(s) avec succès.`);
+    renderGuestsSummary();
+    showDriveFeedback(
+      `✓ ${vendors.length} prestataire(s)${guestMsg} importé(s).`
+      + (skipped > 0 ? ` ${skipped} entrée(s) invalide(s) ignorée(s).` : '')
+    );
   };
   reader.readAsText(file);
 }

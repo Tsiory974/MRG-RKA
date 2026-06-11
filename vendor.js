@@ -20,6 +20,13 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Parse 'YYYY-MM-DD' en date LOCALE (new Date('YYYY-MM-DD') parse en UTC :
+// décalage d'un jour possible selon le fuseau horaire)
+function parseLocalDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function getPaidTotal(vendor) {
   if (!vendor.payments || vendor.payments.length === 0) return 0;
   return vendor.payments.reduce((sum, p) => sum + p.amount, 0);
@@ -38,8 +45,7 @@ function getUrgencyStatus(vendor) {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(vendor.dueDate);
-  due.setHours(0, 0, 0, 0);
+  const due = parseLocalDate(vendor.dueDate);
   const diffDays = Math.round((due - today) / 86_400_000);
 
   if (diffDays < 0)  return 'overdue';
@@ -65,7 +71,12 @@ function loadVendors() {
 }
 
 function saveVendors(vendors) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+  } catch (e) {
+    console.error('[saveVendors]', e);
+    alert('Erreur : impossible d\'enregistrer les données (stockage plein ou indisponible).');
+  }
 }
 
 function loadVendor(id) {
@@ -249,8 +260,7 @@ function getTodoUrgency(todo) {
   if (!todo.dueDate) return 'normal';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(todo.dueDate);
-  due.setHours(0, 0, 0, 0);
+  const due = parseLocalDate(todo.dueDate);
   const diffDays = Math.round((due - today) / 86_400_000);
   if (diffDays < 0) return 'overdue';
   if (diffDays <= 7) return 'urgent';
@@ -337,6 +347,11 @@ function addPayment() {
   const vendors = loadVendors();
   const v = vendors.find(v => String(v.id) === String(currentVendorId));
   if (!v) return;
+
+  const rest = v.total - getPaidTotal(v);
+  if (amount > rest && !confirm(
+    `Ce paiement (${formatCurrency(amount)}) dépasse le reste à payer (${formatCurrency(Math.max(rest, 0))}). Enregistrer quand même ?`
+  )) return;
 
   v.payments.push({ amount, date });
   saveVendors(vendors);
