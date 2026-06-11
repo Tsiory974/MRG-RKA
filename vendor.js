@@ -117,7 +117,7 @@ function renderPage() {
   document.getElementById('vStatusBadge').innerHTML =
     `<span class="badge ${statusClasses[status]}">${statusLabels[status]}</span>`;
 
-  document.getElementById('vDueDate').textContent = formatDate(vendor.dueDate);
+  document.getElementById('vDueDate').value = vendor.dueDate || '';
 
   const urgencyEl = document.getElementById('vUrgencyBadge');
   if (urgency === 'overdue') {
@@ -327,6 +327,9 @@ function saveVendorChanges() {
   const vendors = loadVendors();
   const v = vendors.find(v => String(v.id) === String(currentVendorId));
   if (!v) return;
+
+  // Résumé
+  v.dueDate = document.getElementById('vDueDate').value;
 
   // Coordonnées
   v.phone   = document.getElementById('fPhone').value.trim();

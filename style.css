@@ -814,6 +814,30 @@ footer {
 .finance-value--remaining { color: #e07b54; }
 .finance-value--zero      { color: #bbb; }
 
+.due-date-input {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d2d2d;
+  border: 1.5px solid #e8ddd0;
+  border-radius: 7px;
+  padding: 0.3rem 0.55rem;
+  background: #faf9f7;
+  cursor: pointer;
+  width: auto;
+  transition: border-color 0.15s;
+}
+
+.due-date-input:focus {
+  outline: none;
+  border-color: #c9a96e;
+  background: #fdf8f0;
+}
+
+.due-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
 .vendor-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
