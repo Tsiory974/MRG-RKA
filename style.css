@@ -565,6 +565,51 @@ main {
 
 .rsvp-code-error { color: #b91c1c; font-weight: 600; }
 
+/* ===== Page expérience invité ===== */
+.exp-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #a0785a;
+  margin-top: 0.3rem;
+}
+
+.exp-message {
+  font-size: 0.95rem;
+  color: #6b5d4f;
+  line-height: 1.6;
+  margin-top: 0.8rem;
+}
+
+.exp-details {
+  background: #faf8f4;
+  border: 1.5px solid #f0eae2;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.exp-detail {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d2d2d;
+}
+
+.exp-games {
+  margin-top: 1.4rem;
+  border: 2px dashed #e3d4bd;
+  border-radius: 12px;
+  padding: 2rem 1rem;
+  background: #fdfbf8;
+}
+
+.exp-games-placeholder {
+  font-size: 0.92rem;
+  color: #9a8a7a;
+}
+
 .guest-actions--invite { justify-content: flex-start; }
 
 /* ===== Page invitation RSVP ===== */

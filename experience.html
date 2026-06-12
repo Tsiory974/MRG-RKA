@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faire-part — Mariage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <h1>💍 Notre Mariage</h1>
+      <p class="subtitle">Vous êtes invité·e·s !</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="rsvp-screen">
+      <div class="rsvp-card">
+
+        <!-- 1. Faire-part public (identique pour tous, visible immédiatement) -->
+        <div id="expPublic">
+          <p class="rsvp-fairepart">💍 Faire-part mariage</p>
+          <h2 class="exp-title">Nous nous marions !</h2>
+          <p class="exp-message">
+            Nous serions honorés de votre présence pour célébrer notre union.
+          </p>
+          <div class="exp-details">
+            <!-- ✏️ À personnaliser : -->
+            <p class="exp-detail">📅 Samedi 12 septembre 2026</p>
+            <p class="exp-detail">📍 Lieu de réception, Ville</p>
+          </div>
+          <p class="exp-message">Au plaisir de partager ce grand jour avec vous 💛</p>
+          <button class="btn-primary rsvp-confirm" id="btnEnter">🎉 Accéder à l'espace invité</button>
+        </div>
+
+        <!-- 2. Code d'accès (affiché au clic) -->
+        <div id="expCode" style="display:none;">
+          <p class="rsvp-question">🔑 Entrez votre code d'accès</p>
+          <input type="text" id="codeInput" class="rsvp-code-input" maxlength="5"
+                 autocomplete="off" autocapitalize="characters" placeholder="•••••" />
+          <button class="btn-primary rsvp-confirm" id="btnCode">Valider</button>
+          <p class="rsvp-hint rsvp-code-error" id="codeError"></p>
+        </div>
+
+        <!-- 3. Espace invité (après validation) -->
+        <div id="expContent" style="display:none;">
+          <p class="rsvp-fairepart">🎉 Bienvenue</p>
+          <h2 class="rsvp-name" id="expName"></h2>
+          <div class="exp-games">
+            <p class="exp-games-placeholder">🎲 Les jeux et surprises arrivent bientôt…</p>
+          </div>
+        </div>
+
+        <!-- Erreur -->
+        <div id="expError" style="display:none;">
+          <p class="rsvp-invalid">Invitation invalide</p>
+          <p class="rsvp-hint">Vérifiez le lien scanné ou contactez les mariés.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Avec tout notre amour 💛</p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBL_6HDCI4qgY492jzq7lT7Dx265cneack",
+      authDomain: "mrg-rka.firebaseapp.com",
+      projectId: "mrg-rka",
+      storageBucket: "mrg-rka.firebasestorage.app",
+      messagingSenderId: "406622545802",
+      appId: "1:406622545802:web:76526e9e6ee9dac4050a73"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    const db = getFirestore(app);
+
+    const guestId  = new URLSearchParams(window.location.search).get('id');
+    const CODE_KEY = 'rsvp_code_' + guestId;
+    let   guestData = null;
+
+    function showState(id) {
+      ['expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
+        document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+      });
+    }
+
+    // Le faire-part public s'affiche tout de suite ; l'invité se charge
+    // en arrière-plan pour que le clic sur le bouton soit instantané.
+    const guestPromise = (async () => {
+      if (!guestId) return;
+      try {
+        const snap = await getDoc(doc(db, 'guests', guestId));
+        if (snap.exists()) guestData = snap.data();
+      } catch (e) {
+        console.error('[experience] lecture impossible :', e);
+      }
+    })();
+
+    function renderSpace(g) {
+      document.getElementById('expName').textContent = g.name || 'Cher invité';
+      showState('expContent');
+    }
+
+    // 2. Clic "Accéder à l'espace invité"
+    document.getElementById('btnEnter').addEventListener('click', async () => {
+      await guestPromise;
+      if (!guestData) { showState('expError'); return; }
+
+      // Code déjà validé sur cet appareil (RSVP ou visite précédente) → accès direct
+      const stored = localStorage.getItem(CODE_KEY);
+      if (!guestData.accessCode || stored === guestData.accessCode) {
+        renderSpace(guestData);
+      } else {
+        showState('expCode');
+        document.getElementById('codeInput').focus();
+      }
+    });
+
+    // 3. Validation du code
+    function checkCode() {
+      const entered = document.getElementById('codeInput').value.trim().toUpperCase();
+      if (entered && entered === String(guestData.accessCode).toUpperCase()) {
+        localStorage.setItem(CODE_KEY, guestData.accessCode);
+        document.getElementById('codeError').textContent = '';
+        renderSpace(guestData);
+      } else {
+        document.getElementById('codeError').textContent = 'Code incorrect';
+      }
+    }
+    document.getElementById('btnCode').addEventListener('click', checkCode);
+    document.getElementById('codeInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); checkCode(); }
+    });
+  </script>
+</body>
+</html>

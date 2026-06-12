@@ -383,9 +383,14 @@ const INVITE_LABELS = {
   notsent:  '❌ Non envoyé',
 };
 
-// Lien unique vers la page de réponse (URL absolue, utilisable hors du site)
+// Lien unique vers la page de réponse RSVP (envoyé par email/SMS)
 function inviteLink(id) {
   return new URL(`invite.html?id=${encodeURIComponent(id)}`, window.location.href).href;
+}
+
+// Lien vers l'expérience invité (encodé dans le QR code)
+function experienceLink(id) {
+  return new URL(`experience.html?id=${encodeURIComponent(id)}`, window.location.href).href;
 }
 
 function sendInvite(id, channel) {
@@ -459,7 +464,7 @@ function showQrModal(id) {
     box.textContent = 'QR indisponible (bibliothèque non chargée — vérifiez la connexion).';
   } else {
     new QRCode(box, {
-      text: inviteLink(id),
+      text: experienceLink(id),
       width: 220,
       height: 220,
       correctLevel: QRCode.CorrectLevel.M,
