@@ -440,6 +440,126 @@ main {
 }
 .auth-error:empty { display: none; }
 
+/* ===== Bouton invitation (liste invités) ===== */
+.btn-invite {
+  background: #fdf8f0;
+  border: 1.5px solid #c9a96e;
+  color: #7a5a2a;
+  border-radius: 7px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-invite:hover { background: #faf0e0; }
+
+.guest-actions--invite { justify-content: flex-start; }
+
+/* ===== Page invitation RSVP ===== */
+.rsvp-screen {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1.5rem 1rem;
+}
+
+.rsvp-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  border: 1.5px solid #f0eae2;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rsvp-loading { color: #9a8a7a; }
+
+.rsvp-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.rsvp-names {
+  font-size: 0.95rem;
+  color: #6b5d4f;
+  margin-top: 0.4rem;
+}
+
+.rsvp-invited {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #a0785a;
+  margin-top: 0.4rem;
+}
+
+.rsvp-question {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #2d2d2d;
+  margin-top: 1rem;
+}
+
+.rsvp-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin: 0.8rem 0;
+}
+
+.rsvp-option {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid #e8ddd0;
+  background: #faf9f7;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #2d2d2d;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.rsvp-option:active { transform: scale(0.94); }
+.rsvp-option.selected {
+  background: linear-gradient(135deg, #c9a96e, #a0785a);
+  border-color: #a0785a;
+  color: white;
+}
+
+.rsvp-confirm { width: 100%; font-size: 1.05rem; padding: 0.9rem; }
+.rsvp-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.rsvp-hint {
+  font-size: 0.85rem;
+  color: #9a8a7a;
+  min-height: 1.2em;
+}
+
+.rsvp-thanks {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e6b41;
+  padding: 1rem 0 0.3rem;
+}
+
+.rsvp-recap { color: #6b5d4f; padding-bottom: 1rem; }
+
+.rsvp-invalid {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #b91c1c;
+  padding-top: 1rem;
+}
+
 /* ===== Guests list : recherche, filtres, accordéon ===== */
 .guest-controls {
   display: flex;
@@ -2063,6 +2183,7 @@ input[type="checkbox"] {
     justify-content: stretch;
   }
   .btn-quick,
+  .btn-invite,
   .btn-edit-guest,
   .guest-actions .btn-delete {
     flex: 1;

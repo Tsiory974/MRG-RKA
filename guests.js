@@ -73,9 +73,10 @@ const MEAL_ICON = {
 
 const PAGE_SIZE = 25;            // invités affichés par groupe avant « Afficher plus »
 
-let editingId    = null;
-let searchQuery  = '';
-let activeStatus = 'all';
+let editingId      = null;
+let searchQuery    = '';
+let activeStatus   = 'all';
+let inviteChoiceId = null;       // invité dont on choisit le canal d'envoi (Email/SMS)
 const openGroups  = {};          // clé groupe -> bool (ouvert par défaut)
 const groupLimits = {};          // clé groupe -> nombre affiché
 const expandedIds = new Set();
@@ -348,6 +349,52 @@ function resetForm() {
   document.getElementById('btnCancelEdit').style.display = 'none';
 }
 
+// ===== Invitations RSVP =====
+
+// Lien unique vers la page de réponse (URL absolue, utilisable hors du site)
+function inviteLink(id) {
+  return new URL(`invite.html?id=${encodeURIComponent(id)}`, window.location.href).href;
+}
+
+function sendInvite(id, channel) {
+  const g = loadGuests().find(g => String(g.id) === String(id));
+  if (!g) return;
+  const link = inviteLink(id);
+
+  if (channel === 'email') {
+    const subject = encodeURIComponent('Invitation mariage');
+    const body    = encodeURIComponent(`Bonjour, voici votre invitation :\n${link}`);
+    window.location.href = `mailto:${(g.email || '').trim()}?subject=${subject}&body=${body}`;
+  } else {
+    const phone = (g.phone || '').trim().replace(/\s+/g, '');
+    // iOS attend '&body=', Android '?body='
+    const sep = /iPhone|iPad/i.test(navigator.userAgent) ? '&' : '?';
+    window.location.href = `sms:${phone}${sep}body=${encodeURIComponent(`Invitation : ${link}`)}`;
+  }
+
+  inviteChoiceId = null;
+  renderGuests();
+}
+
+function handleInvite(id) {
+  const g = loadGuests().find(g => String(g.id) === String(id));
+  if (!g) return;
+  const email = (g.email || '').trim();
+  const phone = (g.phone || '').trim();
+
+  if (!email && !phone) {
+    alert('Ajoute un email ou un téléphone pour cet invité.');
+    return;
+  }
+  if (email && phone) {
+    // Les deux canaux existent : afficher le choix Email / SMS dans la carte
+    inviteChoiceId = String(id);
+    renderGuests();
+    return;
+  }
+  sendInvite(id, email ? 'email' : 'sms');
+}
+
 // ===== Statistiques =====
 
 function renderStats(guests) {
@@ -407,6 +454,12 @@ function renderCard(g) {
         ${email ? `<a href="mailto:${escapeHtml(email)}">📧 ${escapeHtml(email)}</a>` : ''}
       </span>` : ''}
       <span class="guest-info-line">${MEAL_ICON[meal] || ''} ${MEAL_LABELS[meal] || meal}</span>
+      <div class="guest-actions guest-actions--invite">
+        ${inviteChoiceId === String(g.id)
+          ? `<button class="btn-invite btn-invite--option" data-channel="email" data-id="${idAttr}">✉️ Envoyer par Email</button>
+             <button class="btn-invite btn-invite--option" data-channel="sms"   data-id="${idAttr}">💬 Envoyer par SMS</button>`
+          : `<button class="btn-invite" data-id="${idAttr}">✉️ Envoyer invitation</button>`}
+      </div>
       <div class="guest-actions">
         ${status !== 'confirmed' ? `<button class="btn-quick btn-quick--confirm" data-action="confirm" data-id="${idAttr}">✓ Confirmer</button>` : ''}
         ${status !== 'declined'  ? `<button class="btn-quick btn-quick--decline" data-action="decline" data-id="${idAttr}">✕ Refuser</button>` : ''}
@@ -543,6 +596,13 @@ document.getElementById('guestsList').addEventListener('click', e => {
     const group = showMore.dataset.group;
     groupLimits[group] = (groupLimits[group] || PAGE_SIZE) + PAGE_SIZE;
     renderGuests();
+    return;
+  }
+
+  const inviteBtn = e.target.closest('.btn-invite');
+  if (inviteBtn) {
+    if (inviteBtn.dataset.channel) sendInvite(inviteBtn.dataset.id, inviteBtn.dataset.channel);
+    else handleInvite(inviteBtn.dataset.id);
     return;
   }
 

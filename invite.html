@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invitation — Mariage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <h1>💍 Notre Mariage</h1>
+      <p class="subtitle">Vous êtes invité·e·s !</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="rsvp-screen">
+      <div class="rsvp-card">
+
+        <!-- Chargement -->
+        <p class="rsvp-loading" id="rsvpLoading">Chargement de votre invitation…</p>
+
+        <!-- Invitation -->
+        <div id="rsvpContent" style="display:none;">
+          <h2 class="rsvp-name" id="rsvpName"></h2>
+          <p class="rsvp-names" id="rsvpNames" style="display:none;"></p>
+          <p class="rsvp-invited" id="rsvpInvited"></p>
+
+          <p class="rsvp-question">Combien de personnes seront présentes ?</p>
+          <div class="rsvp-options" id="rsvpOptions"></div>
+
+          <button class="btn-primary rsvp-confirm" id="btnRsvp" disabled>✅ Confirmer</button>
+          <p class="rsvp-hint" id="rsvpHint"></p>
+        </div>
+
+        <!-- Merci -->
+        <div id="rsvpDone" style="display:none;">
+          <p class="rsvp-thanks">Merci pour votre réponse ❤️</p>
+          <p class="rsvp-recap" id="rsvpRecap"></p>
+        </div>
+
+        <!-- Erreur -->
+        <div id="rsvpError" style="display:none;">
+          <p class="rsvp-invalid">Invitation invalide</p>
+          <p class="rsvp-hint">Vérifiez le lien reçu ou contactez les mariés.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Avec tout notre amour 💛</p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBL_6HDCI4qgY492jzq7lT7Dx265cneack",
+      authDomain: "mrg-rka.firebaseapp.com",
+      projectId: "mrg-rka",
+      storageBucket: "mrg-rka.firebasestorage.app",
+      messagingSenderId: "406622545802",
+      appId: "1:406622545802:web:76526e9e6ee9dac4050a73"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    const db = getFirestore(app);
+
+    const guestId  = new URLSearchParams(window.location.search).get('id');
+    let   selected = null;
+
+    function showState(id) {
+      ['rsvpLoading', 'rsvpContent', 'rsvpDone', 'rsvpError'].forEach(s => {
+        document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+      });
+    }
+
+    function renderOptions(invited, preselect) {
+      const container = document.getElementById('rsvpOptions');
+      container.innerHTML = '';
+      for (let n = 0; n <= invited; n++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'rsvp-option';
+        btn.textContent = n;
+        btn.addEventListener('click', () => {
+          selected = n;
+          container.querySelectorAll('.rsvp-option').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          document.getElementById('btnRsvp').disabled = false;
+        });
+        container.appendChild(btn);
+        if (preselect != null && n === preselect) btn.click();
+      }
+    }
+
+    async function init() {
+      if (!guestId) { showState('rsvpError'); return; }
+
+      let snap;
+      try {
+        snap = await getDoc(doc(db, 'guests', guestId));
+      } catch (e) {
+        console.error('[rsvp] lecture impossible :', e);
+        showState('rsvpError');
+        return;
+      }
+
+      if (!snap.exists()) { showState('rsvpError'); return; }
+
+      const g = snap.data();
+      const invited = Math.max(1, parseInt(g.count, 10) || 1);
+
+      document.getElementById('rsvpName').textContent = g.name || 'Cher invité';
+      if (g.names) {
+        const namesEl = document.getElementById('rsvpNames');
+        namesEl.textContent = '👤 ' + g.names;
+        namesEl.style.display = 'block';
+      }
+      document.getElementById('rsvpInvited').textContent =
+        invited > 1 ? `${invited} places vous sont réservées` : `1 place vous est réservée`;
+
+      const already = (g.confirmedCount === 0 || g.confirmedCount > 0) ? g.confirmedCount : null;
+      renderOptions(invited, already);
+      if (already != null) {
+        document.getElementById('rsvpHint').textContent =
+          'Vous avez déjà répondu — vous pouvez modifier votre réponse.';
+      }
+
+      showState('rsvpContent');
+    }
+
+    document.getElementById('btnRsvp').addEventListener('click', async () => {
+      if (selected == null) return;
+      const btn = document.getElementById('btnRsvp');
+      btn.disabled = true;
+      btn.textContent = 'Envoi…';
+
+      try {
+        await updateDoc(doc(db, 'guests', guestId), { confirmedCount: selected });
+        document.getElementById('rsvpRecap').textContent = selected > 0
+          ? `${selected} personne${selected > 1 ? 's' : ''} confirmée${selected > 1 ? 's' : ''} — à très bientôt !`
+          : 'Nous sommes tristes de ne pas vous compter parmi nous.';
+        showState('rsvpDone');
+        console.log('[rsvp] réponse enregistrée :', selected);
+      } catch (e) {
+        console.error('[rsvp] enregistrement impossible :', e);
+        btn.disabled = false;
+        btn.textContent = '✅ Confirmer';
+        document.getElementById('rsvpHint').textContent =
+          'Impossible d\'enregistrer votre réponse. Vérifiez votre connexion et réessayez.';
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
