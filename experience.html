@@ -20,43 +20,63 @@
   </header>
 
   <main>
-    <section class="rsvp-screen">
+
+    <!-- ===== Scène pilotée par le scroll : enveloppe + faire-part ===== -->
+    <section class="exp-scene" id="expScene" style="display:none;">
+      <div class="exp-stage">
+
+        <!-- Couche de fond parallax (lente) : halos + ornements -->
+        <div class="exp-bg" aria-hidden="true">
+          <div  class="exp-bg-circle exp-bg-circle--1" data-speed="0.06"></div>
+          <div  class="exp-bg-circle exp-bg-circle--2" data-speed="0.10"></div>
+          <span class="exp-bg-item exp-bg-item--1" data-speed="0.14">✦</span>
+          <span class="exp-bg-item exp-bg-item--2" data-speed="0.08">❦</span>
+          <span class="exp-bg-item exp-bg-item--3" data-speed="0.18">✧</span>
+          <span class="exp-bg-item exp-bg-item--4" data-speed="0.12">✦</span>
+        </div>
+
+        <div class="exp-stage-card">
+
+          <!-- Enveloppe (au-dessus, se fond à l'ouverture) -->
+          <div class="scene-envelope" id="sceneEnvelope">
+            <div class="envelope">
+              <div class="envelope-flap" id="sceneFlap"></div>
+              <div class="envelope-body">
+                <span class="envelope-seal">💍</span>
+              </div>
+            </div>
+            <p class="envelope-hint" id="sceneHint">Faites défiler pour ouvrir ⌄</p>
+          </div>
+
+          <!-- Faire-part (en dessous, révélé progressivement) -->
+          <div class="fp scene-fp" id="sceneFp">
+            <p class="fp-eyebrow">Faire-part de mariage</p>
+            <div class="fp-divider">❦</div>
+            <!-- ✏️ À personnaliser : noms des mariés -->
+            <h2 class="fp-names">Tsiory <span class="fp-amp">&amp;</span> Prénom</h2>
+            <p class="fp-text">
+              Nous avons l'immense plaisir de vous inviter
+              à célébrer notre mariage
+            </p>
+            <div class="fp-details">
+              <!-- ✏️ À personnaliser : date et lieu -->
+              <p class="fp-detail">📅 Samedi 12 septembre 2026</p>
+              <p class="fp-detail">📍 Lieu de réception, Ville</p>
+            </div>
+            <div class="fp-divider fp-divider--small">✦</div>
+            <button type="button" class="fp-btn" id="btnEnter">🎉 Accéder à l'espace invité</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Écrans classiques (code, espace invité, erreur) ===== -->
+    <section class="rsvp-screen" id="cardScreen" style="display:none;">
       <div class="rsvp-card">
 
-        <!-- Chargement (visible uniquement si un code mémorisé doit être vérifié) -->
         <p class="rsvp-loading" id="expLoading" style="display:none;">Chargement…</p>
 
-        <!-- 0. Enveloppe fermée (s'ouvre au scroll / swipe / clic) -->
-        <div id="expEnvelope" style="display:none;">
-          <div class="envelope">
-            <div class="envelope-flap"></div>
-            <div class="envelope-body">
-              <span class="envelope-seal">💍</span>
-            </div>
-          </div>
-          <p class="envelope-hint">Faites défiler pour ouvrir ⌄</p>
-        </div>
-
-        <!-- 1. Faire-part public (identique pour tous) -->
-        <div id="expPublic" class="fp" style="display:none;">
-          <p class="fp-eyebrow">Faire-part de mariage</p>
-          <div class="fp-divider">❦</div>
-          <!-- ✏️ À personnaliser : noms des mariés -->
-          <h2 class="fp-names">Tsiory <span class="fp-amp">&amp;</span> Prénom</h2>
-          <p class="fp-text">
-            Nous avons l'immense plaisir de vous inviter
-            à célébrer notre mariage
-          </p>
-          <div class="fp-details">
-            <!-- ✏️ À personnaliser : date et lieu -->
-            <p class="fp-detail">📅 Samedi 12 septembre 2026</p>
-            <p class="fp-detail">📍 Lieu de réception, Ville</p>
-          </div>
-          <div class="fp-divider fp-divider--small">✦</div>
-          <button type="button" class="fp-btn" id="btnEnter">🎉 Accéder à l'espace invité</button>
-        </div>
-
-        <!-- 2. Code d'accès (affiché au clic) -->
         <div id="expCode" style="display:none;">
           <p class="rsvp-question">🔑 Entrez votre code d'accès</p>
           <input type="text" id="codeInput" class="rsvp-code-input" maxlength="5"
@@ -65,7 +85,6 @@
           <p class="rsvp-hint rsvp-code-error" id="codeError"></p>
         </div>
 
-        <!-- 3. Espace invité (après validation) -->
         <div id="expContent" style="display:none;">
           <button type="button" class="exp-back" id="btnBack">🔙 Retour au faire-part</button>
           <p class="rsvp-fairepart">🎉 Bienvenue</p>
@@ -75,7 +94,6 @@
           </div>
         </div>
 
-        <!-- Erreur -->
         <div id="expError" style="display:none;">
           <p class="rsvp-invalid">Invitation invalide</p>
           <p class="rsvp-hint">Vérifiez le lien scanné ou contactez les mariés.</p>
@@ -83,6 +101,7 @@
 
       </div>
     </section>
+
   </main>
 
   <footer>
@@ -112,28 +131,96 @@
     const CODE_KEY = 'rsvp_code_' + guestId;
     let   guestData = null;
 
+    // ===== Machine à états : scène scroll OU écrans classiques =====
+    const CARD_STATES = ['expLoading', 'expCode', 'expContent', 'expError'];
+
     function showState(id) {
-      ['expLoading', 'expEnvelope', 'expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
-        document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+      const scene  = document.getElementById('expScene');
+      const screen = document.getElementById('cardScreen');
+      if (id === 'expScene') {
+        scene.style.display  = 'block';
+        screen.style.display = 'none';
+        updateScene();
+      } else {
+        scene.style.display  = 'none';
+        screen.style.display = 'flex';
+        window.scrollTo(0, 0);
+        CARD_STATES.forEach(s => {
+          document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+        });
+      }
+    }
+
+    // ===== Animation parallax pilotée par le scroll =====
+    // Le rendu est une fonction pure de scrollY : descendre ouvre,
+    // remonter referme — l'inversion est automatique.
+    // Trois couches à vitesses différentes (effet de profondeur) :
+    //   fond (lent) < enveloppe (moyen) < faire-part (rapide)
+    const FLAP_END   = 400;   // 0 → 400 px : le rabat pivote de 0° à 180°
+    const ENV_START  = 380;   // 380 → 620 px : l'enveloppe s'estompe
+    const ENV_END    = 620;
+    const FP_START   = 420;   // 420 → 780 px : le faire-part se révèle
+    const FP_END     = 780;
+    const SCENE_END  = 800;   // fin de la scène (hauteur de scroll utile)
+
+    const ENV_SPEED  = 0.16;  // vitesse parallax de l'enveloppe (couche moyenne)
+
+    const clamp01 = v => Math.min(1, Math.max(0, v));
+
+    // Références mises en cache : aucune requête DOM pendant le scroll
+    const sceneEl = document.getElementById('expScene');
+    const flapEl  = document.getElementById('sceneFlap');
+    const envEl   = document.getElementById('sceneEnvelope');
+    const hintEl  = document.getElementById('sceneHint');
+    const fpEl    = document.getElementById('sceneFp');
+    const bgLayers = [...document.querySelectorAll('.exp-bg-circle, .exp-bg-item')]
+      .map(el => ({ el, speed: parseFloat(el.dataset.speed) || 0.1 }));
+
+    function updateScene() {
+      if (sceneEl.style.display === 'none') return;
+      const y = window.scrollY;
+
+      // Couche fond (lente) : chaque ornement dérive à sa propre vitesse
+      bgLayers.forEach(({ el, speed }) => {
+        el.style.transform = `translateY(${-y * speed}px)`;
       });
+
+      // Rabat : rotation progressive
+      const flapP = clamp01(y / FLAP_END);
+      flapEl.style.transform = `rotateX(${flapP * 180}deg)`;
+
+      // Enveloppe (couche moyenne) : parallax ascendant + fondu une fois ouverte
+      const envP = clamp01((y - ENV_START) / (ENV_END - ENV_START));
+      envEl.style.opacity   = String(1 - envP);
+      envEl.style.transform =
+        `translateY(${-y * ENV_SPEED + envP * 24}px) scale(${1 - envP * 0.05})`;
+
+      // Indice : disparaît dès les premiers pixels
+      hintEl.style.opacity = String(1 - clamp01(y / 150));
+
+      // Faire-part (couche rapide) : opacity 0→1, translateY(50px)→0 + zoom subtil
+      const fpP = clamp01((y - FP_START) / (FP_END - FP_START));
+      fpEl.style.opacity   = String(fpP);
+      fpEl.style.transform = `translateY(${(1 - fpP) * 50}px) scale(${0.96 + fpP * 0.04})`;
+      // Cliquable uniquement une fois (presque) entièrement révélé
+      fpEl.style.pointerEvents = fpP > 0.85 ? 'auto' : 'none';
     }
 
-    // ===== Enveloppe : ouverture au scroll, swipe ou clic =====
-    let envelopeOpened = false;
+    // Throttle via requestAnimationFrame : une mise à jour par frame max
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { updateScene(); ticking = false; });
+    }, { passive: true });
 
-    function openEnvelope() {
-      const env = document.getElementById('expEnvelope');
-      if (envelopeOpened || env.style.display === 'none') return;
-      envelopeOpened = true;
-      env.classList.add('is-open');               // 1. le rabat pivote (CSS)
-      setTimeout(() => showState('expPublic'), 1000);  // 2. puis le faire-part apparaît (fp-fade-up)
-    }
+    // Clic sur l'enveloppe : défilement doux jusqu'à l'ouverture complète
+    // (le smooth scroll pilote l'animation → effet cinématique)
+    document.getElementById('sceneEnvelope').addEventListener('click', () => {
+      window.scrollTo({ top: SCENE_END, behavior: 'smooth' });
+    });
 
-    window.addEventListener('wheel',     openEnvelope, { passive: true });
-    window.addEventListener('touchmove', openEnvelope, { passive: true });
-    document.getElementById('expEnvelope').addEventListener('click', openEnvelope);
-
-    // L'invité se charge en arrière-plan pour que la navigation soit instantanée.
+    // ===== Chargement de l'invité (en arrière-plan) =====
     const guestPromise = (async () => {
       if (!guestId) return;
       try {
@@ -149,10 +236,7 @@
       showState('expContent');
     }
 
-    // ===== État initial après chargement =====
-    // Code déjà validé sur cet appareil → directement l'espace invité
-    // (on attend la vérification Firestore avant d'afficher quoi que ce soit) ;
-    // sinon → faire-part public immédiatement.
+    // ===== État initial =====
     const storedAtLoad = localStorage.getItem(CODE_KEY);
     if (guestId && storedAtLoad) {
       showState('expLoading');
@@ -160,24 +244,18 @@
         if (guestData && (!guestData.accessCode || storedAtLoad === guestData.accessCode)) {
           renderSpace(guestData);
         } else {
-          showState('expEnvelope');   // code mémorisé invalide/obsolète : parcours normal
+          showState('expScene');   // code mémorisé obsolète : parcours normal
         }
       });
     } else {
-      showState('expEnvelope');       // première visite : enveloppe fermée
+      showState('expScene');       // première visite : enveloppe fermée
     }
 
-    // ===== Retour au faire-part (le code reste mémorisé) =====
-    document.getElementById('btnBack').addEventListener('click', () => {
-      showState('expPublic');
-    });
-
-    // 2. Clic "Accéder à l'espace invité"
+    // ===== Accès à l'espace invité =====
     document.getElementById('btnEnter').addEventListener('click', async () => {
       await guestPromise;
       if (!guestData) { showState('expError'); return; }
 
-      // Code déjà validé sur cet appareil (RSVP ou visite précédente) → accès direct
       const stored = localStorage.getItem(CODE_KEY);
       if (!guestData.accessCode || stored === guestData.accessCode) {
         renderSpace(guestData);
@@ -187,7 +265,15 @@
       }
     });
 
-    // 3. Validation du code
+    // ===== Retour au faire-part (le code reste mémorisé) =====
+    document.getElementById('btnBack').addEventListener('click', () => {
+      showState('expScene');
+      // Revenir directement sur le faire-part révélé (pas de re-scroll imposé)
+      window.scrollTo(0, SCENE_END);
+      updateScene();
+    });
+
+    // ===== Validation du code =====
     function checkCode() {
       const entered = document.getElementById('codeInput').value.trim().toUpperCase();
       if (entered && entered === String(guestData.accessCode).toUpperCase()) {

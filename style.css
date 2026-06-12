@@ -565,12 +565,95 @@ main {
 
 .rsvp-code-error { color: #b91c1c; font-weight: 600; }
 
-/* ===== Enveloppe (experience.html) ===== */
+/* ===== Scène scroll : enveloppe + faire-part (experience.html) ===== */
 
-#expEnvelope {
-  padding: 1.5rem 0 1rem;
-  cursor: pointer;
+/* La scène est haute : son scroll pilote l'animation. La "stage" reste
+   collée à l'écran (sticky) pendant que l'utilisateur défile. */
+.exp-scene {
+  height: calc(100vh + 800px);   /* 800px = course de scroll de l'animation */
 }
+
+.exp-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* ── Couche de fond parallax (la plus lente) ── */
+.exp-bg {
+  position: absolute;
+  inset: -25% 0;                 /* déborde pour que la dérive ne laisse pas de vide */
+  pointer-events: none;
+  z-index: 0;
+}
+
+.exp-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  will-change: transform;
+}
+.exp-bg-circle--1 {
+  width: 320px; height: 320px;
+  top: 18%; left: -90px;
+  background: radial-gradient(circle, rgba(201, 169, 110, 0.20), transparent 70%);
+}
+.exp-bg-circle--2 {
+  width: 260px; height: 260px;
+  top: 55%; right: -70px;
+  background: radial-gradient(circle, rgba(160, 120, 90, 0.16), transparent 70%);
+}
+
+.exp-bg-item {
+  position: absolute;
+  font-size: 1.4rem;
+  color: #c9a96e;
+  opacity: 0.35;
+  will-change: transform;
+}
+.exp-bg-item--1 { top: 22%; left: 12%; }
+.exp-bg-item--2 { top: 64%; left: 8%;  font-size: 1.8rem; }
+.exp-bg-item--3 { top: 30%; right: 10%; font-size: 1.1rem; }
+.exp-bg-item--4 { top: 72%; right: 14%; }
+
+/* Enveloppe et faire-part superposés dans la même cellule de grille */
+.exp-stage-card {
+  display: grid;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  z-index: 1;                    /* au-dessus de la couche de fond */
+}
+.exp-stage-card > * { grid-area: 1 / 1; }
+
+.scene-envelope {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  will-change: transform, opacity;
+}
+
+/* Le faire-part démarre invisible ; le scroll le révèle (JS) */
+.scene-fp {
+  background: white;
+  border: 1px solid #ecdfcd;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(160, 120, 90, 0.12);
+  padding: 2rem 1.5rem;
+  opacity: 0;
+  transform: translateY(50px);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.fp.scene-fp { animation: none; }  /* piloté par le scroll, pas par keyframes */
 
 .envelope {
   position: relative;
@@ -578,7 +661,6 @@ main {
   height: 190px;
   margin: 0 auto;
   perspective: 700px;            /* profondeur pour la rotation 3D du rabat */
-  transition: opacity 0.5s ease 0.5s, transform 0.5s ease 0.5s;
 }
 
 .envelope-body {
@@ -598,7 +680,8 @@ main {
   filter: drop-shadow(0 2px 3px rgba(120, 90, 60, 0.3));
 }
 
-/* Rabat triangulaire, pivote depuis le haut */
+/* Rabat triangulaire — transform appliqué par le JS au fil du scroll
+   (pas de transition : le scroll EST la timeline) */
 .envelope-flap {
   position: absolute;
   top: 0;
@@ -609,20 +692,9 @@ main {
   border-right: 140px solid transparent;
   border-top: 100px solid #d9c5a6;
   transform-origin: top center;
-  transition: transform 0.8s ease;
   z-index: 2;
   filter: drop-shadow(0 2px 2px rgba(120, 90, 60, 0.2));
 }
-
-/* Ouverture */
-#expEnvelope.is-open .envelope-flap {
-  transform: rotateX(180deg);
-}
-#expEnvelope.is-open .envelope {
-  opacity: 0;                    /* fondu de sortie, après la rotation du rabat */
-  transform: translateY(14px) scale(0.97);
-}
-#expEnvelope.is-open .envelope-hint { opacity: 0; }
 
 /* Indice de scroll, rebond doux */
 @keyframes envelope-bounce {
@@ -637,7 +709,6 @@ main {
   font-size: 0.92rem;
   color: #9a8a7a;
   animation: envelope-bounce 1.6s ease-in-out infinite;
-  transition: opacity 0.3s;
 }
 
 /* ===== Faire-part (experience.html) ===== */
