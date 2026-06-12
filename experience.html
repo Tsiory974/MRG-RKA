@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Faire-part — Mariage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="exp-page">
 
   <header>
     <div class="header-content">
@@ -23,19 +27,22 @@
         <p class="rsvp-loading" id="expLoading" style="display:none;">Chargement…</p>
 
         <!-- 1. Faire-part public (identique pour tous) -->
-        <div id="expPublic" style="display:none;">
-          <p class="rsvp-fairepart">💍 Faire-part mariage</p>
-          <h2 class="exp-title">Nous nous marions !</h2>
-          <p class="exp-message">
-            Nous serions honorés de votre présence pour célébrer notre union.
+        <div id="expPublic" class="fp" style="display:none;">
+          <p class="fp-eyebrow">Faire-part de mariage</p>
+          <div class="fp-divider">❦</div>
+          <!-- ✏️ À personnaliser : noms des mariés -->
+          <h2 class="fp-names">Tsiory <span class="fp-amp">&amp;</span> Prénom</h2>
+          <p class="fp-text">
+            Nous avons l'immense plaisir de vous inviter
+            à célébrer notre mariage
           </p>
-          <div class="exp-details">
-            <!-- ✏️ À personnaliser : -->
-            <p class="exp-detail">📅 Samedi 12 septembre 2026</p>
-            <p class="exp-detail">📍 Lieu de réception, Ville</p>
+          <div class="fp-details">
+            <!-- ✏️ À personnaliser : date et lieu -->
+            <p class="fp-detail">📅 Samedi 12 septembre 2026</p>
+            <p class="fp-detail">📍 Lieu de réception, Ville</p>
           </div>
-          <p class="exp-message">Au plaisir de partager ce grand jour avec vous 💛</p>
-          <button class="btn-primary rsvp-confirm" id="btnEnter">🎉 Accéder à l'espace invité</button>
+          <div class="fp-divider fp-divider--small">✦</div>
+          <button type="button" class="fp-btn" id="btnEnter">🎉 Accéder à l'espace invité</button>
         </div>
 
         <!-- 2. Code d'accès (affiché au clic) -->

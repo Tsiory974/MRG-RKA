@@ -565,6 +565,112 @@ main {
 
 .rsvp-code-error { color: #b91c1c; font-weight: 600; }
 
+/* ===== Faire-part (experience.html) ===== */
+
+/* Fond de page dédié, dégradé doux */
+body.exp-page {
+  background: linear-gradient(to bottom, #f8f4f0, #ffffff);
+}
+
+body.exp-page .rsvp-card {
+  border: 1px solid #ecdfcd;
+  box-shadow: 0 8px 30px rgba(160, 120, 90, 0.12);
+}
+
+/* Apparition : fondu + léger mouvement vertical */
+@keyframes fp-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fp {
+  animation: fp-fade-up 0.9s ease-out both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.2rem;
+}
+
+.fp-eyebrow {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #b59a82;
+}
+
+.fp-divider {
+  color: #c9a96e;
+  font-size: 1.3rem;
+  line-height: 1;
+  margin: 0.4rem 0;
+}
+.fp-divider--small { font-size: 0.8rem; opacity: 0.7; }
+
+.fp-names {
+  font-family: 'Great Vibes', cursive;
+  font-size: 3rem;
+  font-weight: 400;
+  color: #a0785a;
+  line-height: 1.15;
+}
+
+.fp-amp {
+  font-size: 2.2rem;
+  color: #c9a96e;
+}
+
+.fp-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  color: #4a4036;
+  line-height: 1.7;
+  margin-top: 0.6rem;
+  max-width: 320px;
+}
+
+.fp-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.fp-detail {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d2d2d;
+}
+
+.fp-btn {
+  margin-top: 1.2rem;
+  width: 100%;
+  min-height: 48px;
+  background: linear-gradient(135deg, #c9a96e, #a0785a);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 0.85rem 1.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(160, 120, 90, 0.3);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fp-btn:hover {
+  filter: brightness(0.93);
+  transform: scale(1.03);
+  box-shadow: 0 6px 18px rgba(160, 120, 90, 0.38);
+}
+
+.fp-btn:active { transform: scale(0.98); }
+
 /* ===== Page expérience invité ===== */
 .exp-title {
   font-size: 1.6rem;
@@ -2576,4 +2682,9 @@ input[type="checkbox"] {
     max-height: 90vh;
     overflow-y: auto;
   }
+
+  /* ── Faire-part ── */
+  .fp-names { font-size: 2.4rem; }
+  .fp-amp   { font-size: 1.8rem; }
+  .fp-text  { font-size: 0.98rem; }
 }
