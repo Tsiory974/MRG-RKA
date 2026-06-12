@@ -22,8 +22,18 @@
         <!-- Chargement -->
         <p class="rsvp-loading" id="rsvpLoading">Chargement de votre invitation…</p>
 
+        <!-- Code d'accès -->
+        <div id="rsvpCode" style="display:none;">
+          <p class="rsvp-question">🔑 Entrez votre code d'accès</p>
+          <input type="text" id="codeInput" class="rsvp-code-input" maxlength="5"
+                 autocomplete="off" autocapitalize="characters" placeholder="•••••" />
+          <button class="btn-primary rsvp-confirm" id="btnCode">Valider</button>
+          <p class="rsvp-hint rsvp-code-error" id="codeError"></p>
+        </div>
+
         <!-- Invitation -->
         <div id="rsvpContent" style="display:none;">
+          <p class="rsvp-fairepart">💍 Faire-part pour</p>
           <h2 class="rsvp-name" id="rsvpName"></h2>
           <p class="rsvp-names" id="rsvpNames" style="display:none;"></p>
           <p class="rsvp-invited" id="rsvpInvited"></p>
@@ -74,11 +84,13 @@
     window.firebaseApp = app;
     const db = getFirestore(app);
 
-    const guestId  = new URLSearchParams(window.location.search).get('id');
-    let   selected = null;
+    const guestId   = new URLSearchParams(window.location.search).get('id');
+    const CODE_KEY  = 'rsvp_code_' + guestId;
+    let   selected  = null;
+    let   guestData = null;
 
     function showState(id) {
-      ['rsvpLoading', 'rsvpContent', 'rsvpDone', 'rsvpError'].forEach(s => {
+      ['rsvpLoading', 'rsvpCode', 'rsvpContent', 'rsvpDone', 'rsvpError'].forEach(s => {
         document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
       });
     }
@@ -102,21 +114,7 @@
       }
     }
 
-    async function init() {
-      if (!guestId) { showState('rsvpError'); return; }
-
-      let snap;
-      try {
-        snap = await getDoc(doc(db, 'guests', guestId));
-      } catch (e) {
-        console.error('[rsvp] lecture impossible :', e);
-        showState('rsvpError');
-        return;
-      }
-
-      if (!snap.exists()) { showState('rsvpError'); return; }
-
-      const g = snap.data();
+    function renderRsvp(g) {
       const invited = Math.max(1, parseInt(g.count, 10) || 1);
 
       document.getElementById('rsvpName').textContent = g.name || 'Cher invité';
@@ -137,6 +135,49 @@
 
       showState('rsvpContent');
     }
+
+    async function init() {
+      if (!guestId) { showState('rsvpError'); return; }
+
+      let snap;
+      try {
+        snap = await getDoc(doc(db, 'guests', guestId));
+      } catch (e) {
+        console.error('[rsvp] lecture impossible :', e);
+        showState('rsvpError');
+        return;
+      }
+
+      if (!snap.exists()) { showState('rsvpError'); return; }
+
+      guestData = snap.data();
+
+      // Porte d'accès : code requis, sauf s'il a déjà été validé sur cet appareil
+      // (anciens invités sans accessCode : accès direct, pas de blocage)
+      const stored = localStorage.getItem(CODE_KEY);
+      if (guestData.accessCode && stored !== guestData.accessCode) {
+        showState('rsvpCode');
+        document.getElementById('codeInput').focus();
+      } else {
+        renderRsvp(guestData);
+      }
+    }
+
+    // Validation du code d'accès
+    function checkCode() {
+      const entered = document.getElementById('codeInput').value.trim().toUpperCase();
+      if (entered && entered === String(guestData.accessCode).toUpperCase()) {
+        localStorage.setItem(CODE_KEY, guestData.accessCode);  // mémorisé pour les prochaines visites
+        document.getElementById('codeError').textContent = '';
+        renderRsvp(guestData);
+      } else {
+        document.getElementById('codeError').textContent = 'Code incorrect';
+      }
+    }
+    document.getElementById('btnCode').addEventListener('click', checkCode);
+    document.getElementById('codeInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); checkCode(); }
+    });
 
     document.getElementById('btnRsvp').addEventListener('click', async () => {
       if (selected == null) return;

@@ -126,6 +126,19 @@
     <p>Données sauvegardées localement dans votre navigateur.</p>
   </footer>
 
+  <!-- Modal QR Code -->
+  <div class="qr-overlay" id="qrModal" style="display:none;" role="dialog" aria-modal="true">
+    <div class="qr-modal">
+      <button class="qr-modal-close" id="qrModalClose" aria-label="Fermer">✕</button>
+      <h3 class="qr-modal-name" id="qrModalName"></h3>
+      <div class="qr-code-box" id="qrCodeBox"></div>
+      <p class="qr-access-code">Code : <strong id="qrAccessCode"></strong></p>
+      <button class="btn-primary" id="btnDownloadQr">⬇ Télécharger QR</button>
+    </div>
+  </div>
+
+  <!-- Génération de QR codes (canvas) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="guests.js"></script>
 
   <!-- Firebase + Firestore — module : s'exécute après guests.js, expose db

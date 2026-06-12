@@ -698,6 +698,7 @@ function sanitizeGuest(g) {
     phone: String(g.phone || ''),
     group: String(g.group || ''),
     meal:  String(g.meal  || 'standard'),
+    invitationSent: !!g.invitationSent,
   };
 }
 

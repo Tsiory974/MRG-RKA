@@ -440,6 +440,19 @@ main {
 }
 .auth-error:empty { display: none; }
 
+/* ===== Statut d'envoi d'invitation ===== */
+.invite-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.invite-chip--answered { background: #e6f7ef; color: #1e6b41; }
+.invite-chip--sent     { background: #fff3e0; color: #b45309; }
+.invite-chip--notsent  { background: #f0f0f0; color: #8a8a8a; }
+
 /* ===== Bouton invitation (liste invités) ===== */
 .btn-invite {
   background: #fdf8f0;
@@ -453,6 +466,104 @@ main {
   transition: background 0.15s;
 }
 .btn-invite:hover { background: #faf0e0; }
+
+.btn-qr {
+  background: #f3efe9;
+  border: 1.5px solid #c9a96e;
+  color: #6b5d4f;
+  border-radius: 7px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-qr:hover { background: #ece4d8; }
+
+/* ===== Modal QR Code ===== */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.qr-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 1.8rem 1.5rem;
+  max-width: 320px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.qr-modal-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.8rem;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #999;
+  cursor: pointer;
+}
+.qr-modal-close:hover { color: #2d2d2d; }
+
+.qr-modal-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.qr-code-box {
+  padding: 0.6rem;
+  background: white;
+  border: 1.5px solid #f0eae2;
+  border-radius: 10px;
+}
+.qr-code-box img,
+.qr-code-box canvas { display: block; }
+
+.qr-access-code {
+  font-size: 0.95rem;
+  color: #6b5d4f;
+}
+.qr-access-code strong {
+  font-size: 1.35rem;
+  color: #a0785a;
+  letter-spacing: 4px;
+}
+
+/* Champ code d'accès (page invitation) */
+.rsvp-code-input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  padding: 0.7rem;
+  border: 1.5px solid #e8ddd0;
+  border-radius: 10px;
+  background: #faf9f7;
+  margin: 0.6rem 0 0.8rem;
+}
+.rsvp-code-input:focus {
+  outline: none;
+  border-color: #c9a96e;
+  background: white;
+}
+
+.rsvp-code-error { color: #b91c1c; font-weight: 600; }
 
 .guest-actions--invite { justify-content: flex-start; }
 
@@ -481,10 +592,19 @@ main {
 
 .rsvp-loading { color: #9a8a7a; }
 
+.rsvp-fairepart {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #6b5d4f;
+  letter-spacing: 0.5px;
+}
+
 .rsvp-name {
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   font-weight: 700;
-  color: #2d2d2d;
+  color: #a0785a;
+  line-height: 1.2;
+  margin-top: 0.2rem;
 }
 
 .rsvp-names {
@@ -2184,6 +2304,7 @@ input[type="checkbox"] {
   }
   .btn-quick,
   .btn-invite,
+  .btn-qr,
   .btn-edit-guest,
   .guest-actions .btn-delete {
     flex: 1;

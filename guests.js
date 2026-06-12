@@ -106,6 +106,14 @@ function generateId() {
   return Date.now().toString() + Math.random().toString(36).slice(2, 6);
 }
 
+// Code d'accès : 5 caractères, sans 0/O/1/I/L (lisibilité à l'impression)
+function generateAccessCode() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
 // Minuscules + suppression des accents, pour une recherche insensible aux accents
 function normalizeText(s) {
   return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -168,6 +176,10 @@ function loadGuests() {
       else                              g.confirmedCount = null;  // en attente
       changed = true;
     }
+    if (!g.accessCode) {
+      g.accessCode = generateAccessCode();
+      changed = true;
+    }
   });
   if (changed) saveGuests(guests);
 
@@ -226,6 +238,13 @@ async function initFirestoreSync() {
     const remote = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
 
     if (remote.length > 0) {
+      // Complète les codes d'accès manquants (anciens documents) et les pousse
+      remote.forEach(g => {
+        if (!g.accessCode) {
+          g.accessCode = generateAccessCode();
+          fsPushGuest(g);
+        }
+      });
       guestsCache = remote;
       try { localStorage.setItem(GUESTS_KEY, JSON.stringify(remote)); } catch {}
       renderGuests();
@@ -278,7 +297,7 @@ function addGuest() {
   const data = readForm();
   if (!data) return;
   const guests = loadGuests();
-  const guest = { id: generateId(), ...data };
+  const guest = { id: generateId(), ...data, invitationSent: false, accessCode: generateAccessCode() };
   guests.push(guest);
   saveGuests(guests);
   fsPushGuest(guest);          // sync Firestore en arrière-plan
@@ -351,13 +370,27 @@ function resetForm() {
 
 // ===== Invitations RSVP =====
 
+// Statut d'envoi : 'answered' (a répondu, même 0), 'sent', 'notsent'
+function inviteStatus(g) {
+  if (g.confirmedCount != null) return 'answered';
+  if (g.invitationSent)         return 'sent';
+  return 'notsent';
+}
+
+const INVITE_LABELS = {
+  answered: '✅ Répondu',
+  sent:     '⏳ Envoyé',
+  notsent:  '❌ Non envoyé',
+};
+
 // Lien unique vers la page de réponse (URL absolue, utilisable hors du site)
 function inviteLink(id) {
   return new URL(`invite.html?id=${encodeURIComponent(id)}`, window.location.href).href;
 }
 
 function sendInvite(id, channel) {
-  const g = loadGuests().find(g => String(g.id) === String(id));
+  const guests = loadGuests();
+  const g = guests.find(g => String(g.id) === String(id));
   if (!g) return;
   const link = inviteLink(id);
 
@@ -371,6 +404,11 @@ function sendInvite(id, channel) {
     const sep = /iPhone|iPad/i.test(navigator.userAgent) ? '&' : '?';
     window.location.href = `sms:${phone}${sep}body=${encodeURIComponent(`Invitation : ${link}`)}`;
   }
+
+  // Marque l'invitation comme envoyée (= l'app mail/SMS a été ouverte)
+  g.invitationSent = true;
+  saveGuests(guests);
+  fsPushGuest(g);
 
   inviteChoiceId = null;
   renderGuests();
@@ -393,6 +431,47 @@ function handleInvite(id) {
     return;
   }
   sendInvite(id, email ? 'email' : 'sms');
+}
+
+// ===== QR Code (invités confirmés) =====
+
+let currentQrName = null;
+
+function showQrModal(id) {
+  const guests = loadGuests();
+  const g = guests.find(g => String(g.id) === String(id));
+  if (!g) return;
+
+  // Filet de sécurité : génère le code s'il manque encore
+  if (!g.accessCode) {
+    g.accessCode = generateAccessCode();
+    saveGuests(guests);
+    fsPushGuest(g);
+  }
+
+  currentQrName = g.name;
+  document.getElementById('qrModalName').textContent  = g.name;
+  document.getElementById('qrAccessCode').textContent = g.accessCode;
+
+  const box = document.getElementById('qrCodeBox');
+  box.innerHTML = '';
+  if (typeof QRCode === 'undefined') {
+    box.textContent = 'QR indisponible (bibliothèque non chargée — vérifiez la connexion).';
+  } else {
+    new QRCode(box, {
+      text: inviteLink(id),
+      width: 220,
+      height: 220,
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  }
+
+  document.getElementById('qrModal').style.display = 'flex';
+}
+
+function closeQrModal() {
+  document.getElementById('qrModal').style.display = 'none';
+  document.getElementById('qrCodeBox').innerHTML = '';
 }
 
 // ===== Statistiques =====
@@ -459,6 +538,7 @@ function renderCard(g) {
           ? `<button class="btn-invite btn-invite--option" data-channel="email" data-id="${idAttr}">✉️ Envoyer par Email</button>
              <button class="btn-invite btn-invite--option" data-channel="sms"   data-id="${idAttr}">💬 Envoyer par SMS</button>`
           : `<button class="btn-invite" data-id="${idAttr}">✉️ Envoyer invitation</button>`}
+        ${confirmed > 0 ? `<button class="btn-qr" data-id="${idAttr}">📦 QR Code</button>` : ''}
       </div>
       <div class="guest-actions">
         ${status !== 'confirmed' ? `<button class="btn-quick btn-quick--confirm" data-action="confirm" data-id="${idAttr}">✓ Confirmer</button>` : ''}
@@ -476,6 +556,7 @@ function renderCard(g) {
           ${secondary ? `<span class="guest-card-sub">🏷 ${escapeHtml(secondary)}</span>` : ''}
         </span>
         <span class="guest-card-counts">
+          <span class="invite-chip invite-chip--${inviteStatus(g)}">${INVITE_LABELS[inviteStatus(g)]}</span>
           <span class="guest-card-pax" title="invités · confirmés">👥 ${invited} · ✓ ${confirmed}</span>
           <span class="badge ${STATUS_BADGE[status] || ''}">${STATUS_LABELS[status] || status}</span>
         </span>
@@ -599,6 +680,9 @@ document.getElementById('guestsList').addEventListener('click', e => {
     return;
   }
 
+  const qrBtn = e.target.closest('.btn-qr');
+  if (qrBtn) { showQrModal(qrBtn.dataset.id); return; }
+
   const inviteBtn = e.target.closest('.btn-invite');
   if (inviteBtn) {
     if (inviteBtn.dataset.channel) sendInvite(inviteBtn.dataset.id, inviteBtn.dataset.channel);
@@ -659,6 +743,20 @@ document.getElementById('guestStatusFilters').addEventListener('click', e => {
   document.querySelectorAll('#guestStatusFilters .pill').forEach(p => p.classList.remove('active'));
   pill.classList.add('active');
   renderGuests();
+});
+
+// Modal QR : fermeture + téléchargement PNG
+document.getElementById('qrModalClose').addEventListener('click', closeQrModal);
+document.getElementById('qrModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeQrModal();
+});
+document.getElementById('btnDownloadQr').addEventListener('click', () => {
+  const canvas = document.getElementById('qrCodeBox').querySelector('canvas');
+  if (!canvas) return;
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `qr-${(currentQrName || 'invite').replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+  a.click();
 });
 
 renderGuests();
