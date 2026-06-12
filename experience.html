@@ -26,6 +26,17 @@
         <!-- Chargement (visible uniquement si un code mémorisé doit être vérifié) -->
         <p class="rsvp-loading" id="expLoading" style="display:none;">Chargement…</p>
 
+        <!-- 0. Enveloppe fermée (s'ouvre au scroll / swipe / clic) -->
+        <div id="expEnvelope" style="display:none;">
+          <div class="envelope">
+            <div class="envelope-flap"></div>
+            <div class="envelope-body">
+              <span class="envelope-seal">💍</span>
+            </div>
+          </div>
+          <p class="envelope-hint">Faites défiler pour ouvrir ⌄</p>
+        </div>
+
         <!-- 1. Faire-part public (identique pour tous) -->
         <div id="expPublic" class="fp" style="display:none;">
           <p class="fp-eyebrow">Faire-part de mariage</p>
@@ -102,10 +113,25 @@
     let   guestData = null;
 
     function showState(id) {
-      ['expLoading', 'expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
+      ['expLoading', 'expEnvelope', 'expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
         document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
       });
     }
+
+    // ===== Enveloppe : ouverture au scroll, swipe ou clic =====
+    let envelopeOpened = false;
+
+    function openEnvelope() {
+      const env = document.getElementById('expEnvelope');
+      if (envelopeOpened || env.style.display === 'none') return;
+      envelopeOpened = true;
+      env.classList.add('is-open');               // 1. le rabat pivote (CSS)
+      setTimeout(() => showState('expPublic'), 1000);  // 2. puis le faire-part apparaît (fp-fade-up)
+    }
+
+    window.addEventListener('wheel',     openEnvelope, { passive: true });
+    window.addEventListener('touchmove', openEnvelope, { passive: true });
+    document.getElementById('expEnvelope').addEventListener('click', openEnvelope);
 
     // L'invité se charge en arrière-plan pour que la navigation soit instantanée.
     const guestPromise = (async () => {
@@ -134,11 +160,11 @@
         if (guestData && (!guestData.accessCode || storedAtLoad === guestData.accessCode)) {
           renderSpace(guestData);
         } else {
-          showState('expPublic');   // code mémorisé invalide/obsolète : parcours normal
+          showState('expEnvelope');   // code mémorisé invalide/obsolète : parcours normal
         }
       });
     } else {
-      showState('expPublic');
+      showState('expEnvelope');       // première visite : enveloppe fermée
     }
 
     // ===== Retour au faire-part (le code reste mémorisé) =====
