@@ -19,8 +19,11 @@
     <section class="rsvp-screen">
       <div class="rsvp-card">
 
-        <!-- 1. Faire-part public (identique pour tous, visible immédiatement) -->
-        <div id="expPublic">
+        <!-- Chargement (visible uniquement si un code mémorisé doit être vérifié) -->
+        <p class="rsvp-loading" id="expLoading" style="display:none;">Chargement…</p>
+
+        <!-- 1. Faire-part public (identique pour tous) -->
+        <div id="expPublic" style="display:none;">
           <p class="rsvp-fairepart">💍 Faire-part mariage</p>
           <h2 class="exp-title">Nous nous marions !</h2>
           <p class="exp-message">
@@ -46,6 +49,7 @@
 
         <!-- 3. Espace invité (après validation) -->
         <div id="expContent" style="display:none;">
+          <button type="button" class="exp-back" id="btnBack">🔙 Retour au faire-part</button>
           <p class="rsvp-fairepart">🎉 Bienvenue</p>
           <h2 class="rsvp-name" id="expName"></h2>
           <div class="exp-games">
@@ -91,13 +95,12 @@
     let   guestData = null;
 
     function showState(id) {
-      ['expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
+      ['expLoading', 'expPublic', 'expCode', 'expContent', 'expError'].forEach(s => {
         document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
       });
     }
 
-    // Le faire-part public s'affiche tout de suite ; l'invité se charge
-    // en arrière-plan pour que le clic sur le bouton soit instantané.
+    // L'invité se charge en arrière-plan pour que la navigation soit instantanée.
     const guestPromise = (async () => {
       if (!guestId) return;
       try {
@@ -112,6 +115,29 @@
       document.getElementById('expName').textContent = g.name || 'Cher invité';
       showState('expContent');
     }
+
+    // ===== État initial après chargement =====
+    // Code déjà validé sur cet appareil → directement l'espace invité
+    // (on attend la vérification Firestore avant d'afficher quoi que ce soit) ;
+    // sinon → faire-part public immédiatement.
+    const storedAtLoad = localStorage.getItem(CODE_KEY);
+    if (guestId && storedAtLoad) {
+      showState('expLoading');
+      guestPromise.then(() => {
+        if (guestData && (!guestData.accessCode || storedAtLoad === guestData.accessCode)) {
+          renderSpace(guestData);
+        } else {
+          showState('expPublic');   // code mémorisé invalide/obsolète : parcours normal
+        }
+      });
+    } else {
+      showState('expPublic');
+    }
+
+    // ===== Retour au faire-part (le code reste mémorisé) =====
+    document.getElementById('btnBack').addEventListener('click', () => {
+      showState('expPublic');
+    });
 
     // 2. Clic "Accéder à l'espace invité"
     document.getElementById('btnEnter').addEventListener('click', async () => {
