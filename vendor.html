@@ -16,7 +16,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="appMain" style="display:none;">
 
     <div id="vendorContent">
 
@@ -216,5 +216,44 @@
   </footer>
 
   <script src="vendor.js"></script>
+
+  <!-- Garde d'authentification : la connexion se fait sur index.html -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBL_6HDCI4qgY492jzq7lT7Dx265cneack",
+      authDomain: "mrg-rka.firebaseapp.com",
+      projectId: "mrg-rka",
+      storageBucket: "mrg-rka.firebasestorage.app",
+      messagingSenderId: "406622545802",
+      appId: "1:406622545802:web:76526e9e6ee9dac4050a73"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    window.auth = getAuth(app);
+
+    onAuthStateChanged(window.auth, user => {
+      if (user) {
+        document.getElementById('appMain').style.display = 'flex';
+        console.log('[auth] session active :', user.email);
+      } else {
+        window.location.href = 'index.html';   // retour à l'écran de connexion
+      }
+    });
+  </script>
+
+  <script>
+    // Secours hors ligne : si le module Firebase ne se charge pas,
+    // on affiche quand même la page (mode localStorage).
+    setTimeout(() => {
+      if (!window.firebaseApp) {
+        console.warn('[auth] Firebase inaccessible — mode hors ligne');
+        document.getElementById('appMain').style.display = 'flex';
+      }
+    }, 5000);
+  </script>
 </body>
 </html>

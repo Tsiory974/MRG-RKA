@@ -15,7 +15,29 @@
     </div>
   </header>
 
-  <main>
+  <!-- Écran de connexion (seul élément visible tant que non connecté) -->
+  <section id="loginScreen" class="login-screen" style="display:none;">
+    <form id="loginForm" class="login-card">
+      <h2>🔐 Connexion</h2>
+      <p class="login-hint">Accès réservé — connectez-vous pour ouvrir l'application.</p>
+      <input type="email" id="loginEmail" placeholder="Email"
+             autocomplete="username" required />
+      <input type="password" id="loginPassword" placeholder="Mot de passe"
+             autocomplete="current-password" required />
+      <button type="submit" class="btn-primary">Se connecter</button>
+      <p class="auth-error" id="loginError"></p>
+    </form>
+  </section>
+
+  <main id="appMain" style="display:none;">
+
+    <!-- Session -->
+    <section class="auth-bar">
+      <div class="auth-status">
+        <span class="auth-user" id="authUserLabel"></span>
+        <button type="button" class="btn-secondary" id="btnLogout">Se déconnecter</button>
+      </div>
+    </section>
 
     <!-- Alertes paiements -->
     <section class="alerts-section" id="alertsSection" style="display:none;">
@@ -228,5 +250,88 @@
   </div>
 
   <script src="app.js"></script>
+
+  <!-- Firebase — script module : s'exécute après le parsing de la page et
+       n'interfère pas avec app.js (qui reste un script classique chargé avant).
+       Si le réseau est indisponible, seul ce module échoue : l'app continue
+       de fonctionner en localStorage. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+    // Pour Firestore plus tard, décommenter :
+    // import { getFirestore } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBL_6HDCI4qgY492jzq7lT7Dx265cneack",
+      authDomain: "mrg-rka.firebaseapp.com",
+      projectId: "mrg-rka",
+      storageBucket: "mrg-rka.firebasestorage.app",
+      messagingSenderId: "406622545802",
+      appId: "1:406622545802:web:76526e9e6ee9dac4050a73"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    const auth = getAuth(app);
+    window.auth = auth;
+    console.log('[firebase] initialisé :', app.options.projectId);
+
+    // ===== Portail de connexion =====
+    const loginScreen = document.getElementById('loginScreen');
+    const appMain     = document.getElementById('appMain');
+    const loginError  = document.getElementById('loginError');
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      loginError.textContent = '';
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById('loginEmail').value.trim(),
+          document.getElementById('loginPassword').value
+        );
+        console.log('[auth] connecté');
+      } catch (err) {
+        console.warn('[auth] échec connexion :', err.code);
+        const messages = {
+          'auth/invalid-credential':     'Email ou mot de passe incorrect.',
+          'auth/invalid-email':          'Adresse email invalide.',
+          'auth/too-many-requests':      'Trop de tentatives, réessayez plus tard.',
+          'auth/network-request-failed': 'Pas de connexion réseau.',
+        };
+        loginError.textContent = messages[err.code] || `Erreur de connexion (${err.code || 'inconnue'}).`;
+      }
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loginScreen.style.display = 'none';
+        appMain.style.display     = 'flex';   // main est en flex-column dans le CSS
+        document.getElementById('authUserLabel').textContent = `✓ Connecté : ${user.email}`;
+        document.getElementById('loginForm').reset();
+      } else {
+        loginScreen.style.display = 'flex';
+        appMain.style.display     = 'none';
+      }
+    });
+  </script>
+
+  <script>
+    // Secours hors ligne : si le module Firebase ne se charge pas (CDN
+    // inaccessible), on ouvre l'app en mode local après 5 s pour ne pas
+    // bloquer l'utilisation (les données restent dans le localStorage).
+    setTimeout(() => {
+      if (!window.firebaseApp) {
+        console.warn('[auth] Firebase inaccessible — ouverture en mode hors ligne');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appMain').style.display = 'flex';
+        document.getElementById('authUserLabel').textContent = '⚠ Mode hors ligne';
+      }
+    }, 5000);
+  </script>
 </body>
 </html>

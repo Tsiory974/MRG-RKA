@@ -184,6 +184,70 @@ function saveGuests(guests) {
   }
 }
 
+// ===== Synchronisation Firestore =====
+// Stratégie "local d'abord" : le localStorage reste la copie de travail
+// (UI instantanée, fallback hors ligne, dashboard index.html inchangé) ;
+// Firestore est la source de référence, synchronisée en arrière-plan.
+
+const FS_COLLECTION = 'guests';
+
+function fsAvailable() {
+  return !!(window.db && window.fs);
+}
+
+// Crée ou met à jour un invité dans Firestore (upsert sur l'id local).
+// setDoc(doc(..., id)) plutôt que addDoc : addDoc générerait un nouvel id
+// à chaque écriture, rendant impossible la mise à jour/suppression ensuite.
+function fsPushGuest(guest) {
+  if (!fsAvailable()) return;
+  const { doc, setDoc } = window.fs;
+  setDoc(doc(window.db, FS_COLLECTION, String(guest.id)), guest)
+    .then(() => console.log('[firestore] guest ajouté dans Firebase :', guest.name))
+    .catch(e => console.warn('[firestore] écriture impossible (données conservées en local) :', e));
+}
+
+function fsDeleteGuest(id) {
+  if (!fsAvailable()) return;
+  const { doc, deleteDoc } = window.fs;
+  deleteDoc(doc(window.db, FS_COLLECTION, String(id)))
+    .then(() => console.log('[firestore] guest supprimé de Firebase :', id))
+    .catch(e => console.warn('[firestore] suppression impossible :', e));
+}
+
+// Au chargement : lit la collection. Si elle contient des données, elle fait
+// foi (cache + miroir localStorage remplacés). Si elle est vide alors que le
+// localStorage a des invités, migration initiale : on pousse tout vers Firebase.
+async function initFirestoreSync() {
+  if (!fsAvailable()) return;
+  const { collection, getDocs } = window.fs;
+  try {
+    const snapshot = await getDocs(collection(window.db, FS_COLLECTION));
+    const remote = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+
+    if (remote.length > 0) {
+      guestsCache = remote;
+      try { localStorage.setItem(GUESTS_KEY, JSON.stringify(remote)); } catch {}
+      renderGuests();
+      console.log(`[firestore] ${remote.length} guests chargés depuis Firebase`);
+    } else {
+      const local = loadGuests();
+      if (local.length > 0) {
+        local.forEach(fsPushGuest);
+        console.log(`[firestore] migration initiale : ${local.length} invité(s) envoyé(s) vers Firebase`);
+      } else {
+        console.log('[firestore] guests chargés depuis Firebase (collection vide)');
+      }
+    }
+  } catch (e) {
+    console.warn('[firestore] lecture impossible — utilisation du localStorage :', e);
+  }
+}
+
+// Le module Firebase (fin de guests.html) s'exécute après ce script :
+// on attend son signal. S'il est déjà passé (rechargement), on lance direct.
+if (fsAvailable()) initFirestoreSync();
+else document.addEventListener('firebase-ready', initFirestoreSync, { once: true });
+
 // ===== CRUD =====
 
 function readForm() {
@@ -213,8 +277,10 @@ function addGuest() {
   const data = readForm();
   if (!data) return;
   const guests = loadGuests();
-  guests.push({ id: generateId(), ...data });
+  const guest = { id: generateId(), ...data };
+  guests.push(guest);
   saveGuests(guests);
+  fsPushGuest(guest);          // sync Firestore en arrière-plan
   resetForm();
   renderGuests();
 }
@@ -228,6 +294,7 @@ function updateGuest(id) {
   Object.assign(g, data);
   delete g.status;  // statut désormais dérivé de confirmedCount
   saveGuests(guests);
+  fsPushGuest(g);              // sync Firestore en arrière-plan
   resetForm();
   renderGuests();
 }
@@ -235,6 +302,7 @@ function updateGuest(id) {
 function deleteGuest(id) {
   const guests = loadGuests().filter(g => String(g.id) !== String(id));
   saveGuests(guests);
+  fsDeleteGuest(id);           // sync Firestore en arrière-plan
   if (String(editingId) === String(id)) resetForm();
   renderGuests();
 }
@@ -246,6 +314,7 @@ function setConfirmed(id, value) {
   g.confirmedCount = Math.max(0, Math.min(value, guestInvited(g)));
   delete g.status;  // statut désormais dérivé de confirmedCount
   saveGuests(guests);
+  fsPushGuest(g);              // sync Firestore en arrière-plan
   renderGuests();
 }
 

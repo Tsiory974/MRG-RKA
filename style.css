@@ -351,6 +351,95 @@ main {
 }
 .btn-quick--decline:hover { background: #f9d6d6; }
 
+/* ===== Écran de connexion ===== */
+.login-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem;
+}
+
+.login-card {
+  background: white;
+  border-radius: 14px;
+  padding: 2rem 1.8rem;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  border: 1.5px solid #f0eae2;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.login-card h2 {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #2d2d2d;
+}
+
+.login-hint {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #9a8a7a;
+  margin-top: -0.3rem;
+}
+
+.login-card input { width: 100%; }
+.login-card .btn-primary { width: 100%; }
+.login-card .auth-error { text-align: center; margin-top: 0; }
+
+/* ===== Auth bar (connexion admin) ===== */
+.auth-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 0.85rem 1.2rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  border: 1.5px solid #f0eae2;
+}
+
+.auth-form {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.auth-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #6b5d4f;
+  white-space: nowrap;
+}
+
+.auth-form input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.auth-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.auth-user {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #1e6b41;
+}
+
+.auth-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+.auth-error:empty { display: none; }
+
 /* ===== Guests list : recherche, filtres, accordéon ===== */
 .guest-controls {
   display: flex;

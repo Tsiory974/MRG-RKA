@@ -16,7 +16,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="appMain" style="display:none;">
 
     <!-- Statistiques -->
     <section class="guests-stats-section">
@@ -127,5 +127,62 @@
   </footer>
 
   <script src="guests.js"></script>
+
+  <!-- Firebase + Firestore — module : s'exécute après guests.js, expose db
+       et les fonctions Firestore, puis signale 'firebase-ready'.
+       Hors ligne, seul ce module échoue : la page continue en localStorage. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBL_6HDCI4qgY492jzq7lT7Dx265cneack",
+      authDomain: "mrg-rka.firebaseapp.com",
+      projectId: "mrg-rka",
+      storageBucket: "mrg-rka.firebasestorage.app",
+      messagingSenderId: "406622545802",
+      appId: "1:406622545802:web:76526e9e6ee9dac4050a73"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseApp = app;
+    window.db = getFirestore(app);
+    window.fs = { collection, addDoc, getDocs, doc, setDoc, deleteDoc };
+
+    // ===== Garde d'authentification =====
+    // La connexion se fait sur index.html ; ici on vérifie juste la session.
+    const auth = getAuth(app);
+    window.auth = auth;
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('appMain').style.display = 'flex';
+        console.log('[auth] session active :', user.email);
+        // Relance la lecture Firestore maintenant que les droits sont acquis
+        // (initFirestoreSync est une fonction globale définie dans guests.js)
+        if (typeof initFirestoreSync === 'function') initFirestoreSync();
+      } else {
+        window.location.href = 'index.html';   // retour à l'écran de connexion
+      }
+    });
+
+    document.dispatchEvent(new Event('firebase-ready'));
+  </script>
+
+  <script>
+    // Secours hors ligne : si le module Firebase ne se charge pas,
+    // on affiche quand même la page (mode localStorage).
+    setTimeout(() => {
+      if (!window.firebaseApp) {
+        console.warn('[auth] Firebase inaccessible — mode hors ligne');
+        document.getElementById('appMain').style.display = 'flex';
+      }
+    }, 5000);
+  </script>
 </body>
 </html>
